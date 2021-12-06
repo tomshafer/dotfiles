@@ -173,7 +173,7 @@ mkd() {
 
 cpwd() {
     # Copy pwd to clipboard
-    if [[ `type -p pbcopy` ]]; then
+    if [[ -z `type -p pbcopy` ]]; then
         >&2 echo "Command 'pbcopy' is not available."
         return 1
     fi
@@ -185,7 +185,7 @@ venv() {
     local dir_options=(.venv venv .env env)
     local matched=0
     for d in "${dir_options[@]}"; do
-        if [[ -d $d ]]; then
+        if [[ -f $d/bin/activate ]]; then
             source "$d/bin/activate"
             matched=1
             break
