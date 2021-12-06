@@ -19,3 +19,4 @@ TBC
   - What typically should be installed for these to be available?
 - Figure out the minimal gitconfig that can be applied to all
   systems that I interact with
+- Look at GPG Agent Forwarding for SSH
