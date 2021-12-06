@@ -7,7 +7,7 @@ if [[ -n $1 ]]; then
     dotpath="$1"
 fi
 
-for df in "$dotpath"/{bash/*,git/*,python/*,hushlogin,screenrc}; do
+for df in $dotpath/{bash/*,git/*,python/*,hushlogin,screenrc}; do
 
     target=".$(basename $df)"
     echo "$df -> $target"
