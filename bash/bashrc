@@ -1,0 +1,78 @@
+
+# Helpful Definitions --------------------------------------
+
+IS_MACOSX=$([[ `uname -s` =~ ^Darwin ]] && echo "1")
+
+
+# General options ------------------------------------------
+
+shopt -s autocd cdspell checkjobs cmdhist globstar
+
+
+# Path -----------------------------------------------------
+
+__deduplicate_path() {
+    # https://unix.stackexchange.com/a/124517
+    printf %s "$PATH" | awk -v RS=: '!a[$0]++' | paste -s -d: -
+}
+
+[[ `type -t brew` ]] && PATH="$(brew --prefix)/bin:$PATH"
+[[ -d $HOME/bin ]] && PATH="$HOME/bin:$PATH"
+export PATH=$(__deduplicate_path "$PATH")
+
+
+# Prompt ---------------------------------------------------
+# https://superuser.com/q/1619614
+
+__prompt_command() {
+    PRE_PS1=$([[ -n $PS1_PREFIX ]] && echo "$PS1_PREFIX ")
+    GIT_PS1=$([[ `type -t __git_ps1` ]] && __git_ps1 " %s")
+    PS1='$PRE_PS1\[\e[0;32m\]\W\[\e[0m\]\[\e[0;33m\]$GIT_PS1\[\e[0m\] \$ '
+}
+
+PROMPT_COMMAND=__prompt_command
+
+
+# Aliases --------------------------------------------------
+
+alias ..='cd ..'
+alias -- -='cd -'
+
+# MacOS only
+if [[ -z $IS_MACOSX ]]; then
+    alias o='command open'
+    alias oo='o .'
+fi
+
+# Directory listings -- I prefer 'exa' if I have it
+if [[ `which exa` ]]; then
+
+    alias ls='exa --no-permissions --octal-permissions --color-scale --group-directories-first --git -Fg'
+
+    alias l='ls -l'
+    alias ll='l -a'
+    alias la='ll -a'
+    alias lt='l --sort=name'
+    alias lr='lt --reverse'
+
+else
+
+    # MacOS has a different set of arguments for ls.
+    if [[ -z $IS_MACOSX ]]; then
+        alias ls="command ls -GFh"
+    else
+        alias ls="command ls --color -Fh"
+    fi
+
+    alias l='ls -l'
+    alias ll='l -Ak'
+    alias la='l -a'
+    alias lt='l -r'
+    alias lr='lt -t'
+
+fi
+
+
+# Cleanup --------------------------------------------------
+
+unset IS_MACOSX

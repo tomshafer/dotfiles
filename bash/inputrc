@@ -1,0 +1,9 @@
+
+# Up and down arrows for searching history
+# https://superuser.com/a/1332850
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
+# Tab completion is case insensitive
+# https://askubuntu.com/a/87066
+set completion-ignore-case on
