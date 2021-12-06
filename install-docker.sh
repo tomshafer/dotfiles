@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 
 # Install dotfiles into Docker via VS Code Remote Container.
-# Just cat the files into their (maybe nonexistent) counterparts
-# Usage: install-docker.sh [PATH_TO_DOTFILES: ~/dotfiles]
+# Just cat the files to the end of their (maybe nonexistent) counterparts.
 
-dotpath=$([[ -z $1 ]] && echo ~/dotfiles ||echo "$1")
-echo "PWD: $(pwd)"
-for df in $dotpath/{bash/*,git/*,python/*,hushlogin,screenrc}; do
-    target=".$(basename $df)"
+for df in bash/* git/* python/* hushlogin screenrc; do
+    target="$HOME/.$(basename $df)"
 
     echo "$df -> $target"
     cat "$df" >> "$target"
 done
-
-unset dotpath
