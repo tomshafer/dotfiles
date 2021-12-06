@@ -125,14 +125,14 @@ alias ..='cd ..'
 alias -- -='cd -'
 
 # MacOS only
-if [[ -z $IS_MACOSX ]]; then
+if [[ -n $IS_MACOSX ]]; then
     alias o='command open'
     alias oo='o .'
     alias rstudio='command open -a rstudio'
 fi
 
 # Directory listings -- I prefer 'exa' if I have it
-if [[ `which exa` ]]; then
+if [[ -n `type -p exa` ]]; then
 
     alias ls='exa --no-permissions --octal-permissions --color-scale --group-directories-first --git -Fg'
 
@@ -145,10 +145,10 @@ if [[ `which exa` ]]; then
 else
 
     # MacOS has a different set of arguments for ls.
-    if [[ -z $IS_MACOSX ]]; then
-        alias ls="command ls -GFh"
-    else
+    if [[ `ls --color 2>/dev/null` ]]; then
         alias ls="command ls --color -Fh"
+    else
+        alias ls="command ls -GFh"
     fi
 
     alias l='ls -l'
