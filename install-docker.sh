@@ -1,4 +1,4 @@
-# /usr/bin/env bash
+# !/usr/bin/env bash
 
 # Install dotfiles into Docker via VS Code Remote Container.
 # Just cat the files into their (maybe nonexistent) counterparts
