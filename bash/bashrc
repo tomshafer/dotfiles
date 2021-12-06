@@ -145,12 +145,9 @@ if [[ -n `type -p exa` ]]; then
 else
 
     # MacOS has a different set of arguments for ls.
-    if [[ `ls --color 2>/dev/null` == 0 ]]; then
-        alias ls="command ls --color -Fh"
-    else
-        alias ls="command ls -GFh"
-    fi
+    colorflag=$(ls --color &>/dev/null && echo "--color" || echo "-G")
 
+    alias ls="command ls -Fh $colorflag"
     alias l='ls -l'
     alias ll='l -Ak'
     alias la='l -a'
