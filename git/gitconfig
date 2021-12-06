@@ -60,6 +60,10 @@
     # Use `hexdump` to diff binary files.
     textconv = hexdump -v -C
 
+[gpg]
+
+    program = gpg
+
 [help]
 
     # Automatically correct mistyped commands.

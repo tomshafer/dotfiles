@@ -2,10 +2,23 @@
 IS_MACOSX=$([[ `uname -s` =~ ^Darwin ]] && echo 1)
 
 
+# Path -----------------------------------------------------
+
+__deduplicate_path() {
+    # https://unix.stackexchange.com/a/124517
+    printf %s "$PATH" | awk -v RS=: '!a[$0]++' | paste -s -d: -
+}
+
+[[ `type -t brew` ]] && PATH="$(brew --prefix)/bin:$PATH"
+[[ -d $HOME/bin ]] && PATH="$HOME/bin:$PATH"
+export PATH=$(__deduplicate_path "$PATH")
+
+
 # Exports --------------------------------------------------
 # Many from https://github.com/mathiasbynens/dotfiles/
 
 export EDITOR="$([[ `type -p code` ]] && echo code -w || echo vim)"
+export VISUAL="$EDITOR"
 
 # Increase Bash history size. Allow 32³ entries; the default is 500.
 export HISTSIZE='32768'
@@ -22,26 +35,44 @@ export MANPAGER='less -X'
 
 # Avoid issues with `gpg` as installed via Homebrew.
 # https://stackoverflow.com/a/42265848
-export GPG_TTY=$(tty);
+export GPG_TTY=$(tty)
 
 
-# Path -----------------------------------------------------
+# Completion -----------------------------------------------
 
-__deduplicate_path() {
-    # https://unix.stackexchange.com/a/124517
-    printf %s "$PATH" | awk -v RS=: '!a[$0]++' | paste -s -d: -
-}
+# Bash completions
+# Cf https://github.com/mathiasbynens/dotfiles/blob/main/.bash_profile
+if [[ -f /etc/bash_completion ]]; then
+    source /etc/bash_completion;
+fi
 
-[[ `type -t brew` ]] && PATH="$(brew --prefix)/bin:$PATH"
-[[ -d $HOME/bin ]] && PATH="$HOME/bin:$PATH"
-export PATH=$(__deduplicate_path "$PATH")
+if which brew &> /dev/null && [ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]; then
+	# Ensure existing Homebrew v1 completions continue to work
+	export BASH_COMPLETION_COMPAT_DIR="$(brew --prefix)/etc/bash_completion.d";
+	source "$(brew --prefix)/etc/profile.d/bash_completion.sh";
+fi
+
+# Add tab completion for SSH hostnames based on ~/.ssh/config, ignoring wildcards
+# https://github.com/mathiasbynens/dotfiles/blob/main/.bash_profile
+if [[ -e $HOME/.ssh/config ]]; then
+    complete \
+        -o "default" \
+        -o "nospace" \
+        -W "$(grep "^Host" ~/.ssh/config | grep -v "[?*]" | cut -d " " -f2- | tr ' ' '\n')" \
+        scp sftp ssh;
+fi
 
 
 # Prompt ---------------------------------------------------
 # https://superuser.com/q/1619614
 
+__trunc_pwd() {
+    # Turn /Users/tshafer/somedir/someotherdir -> ~/s/someotherdir
+    pwd | sed -r -e "s:$HOME:~:" -e 's:([^/])([^/]+/):\1/:g'
+}
+
 __git_prompt() {
-    if [[ ! `type -t __git_ps1` ]]; then
+    if [[ `type -t __git_ps1` ]]; then
 
         __git_ps1 " %s"
 
@@ -66,16 +97,23 @@ __git_prompt() {
     fi
 }
 
-__trunc_pwd() {
-    # Turn /Users/tshafer/somedir/someotherdir -> ~/s/someotherdir
-    pwd | sed -r -e "s:$HOME:~:" -e 's:([^/])([^/]+/):\1/:g'
+__venv_prompt() {
+  [[ -n $VIRTUAL_ENV ]] && printf ' (%s)' `basename $VIRTUAL_ENV`
+}
+
+__conda_prompt() {
+    if [[ -n $CONDA_PROMPT_MODIFIER && -z $VIRTUAL_ENV ]]; then
+        echo "$CONDA_PROMPT_MODIFIER" | sed -e 's:^.*\(base\).*$::'
+    fi
 }
 
 __prompt_command() {
-    PRE_PS1=$([[ -n $PS1_PREFIX ]] && echo "$PS1_PREFIX ")
-    GIT_PS1=$(__git_prompt)
-    PWD_PS1=$(__trunc_pwd)
-    PS1='$PRE_PS1\[\e[0;32m\]$PWD_PS1\[\e[0m\]\[\e[0;33m\]$GIT_PS1\[\e[0m\] \$ '
+    _pre=$([[ -n $PS1_PREFIX ]] && echo "$PS1_PREFIX ")
+    _git=$(__git_prompt)
+    _pwd=$(__trunc_pwd)
+    _env=$(__venv_prompt)
+    _conda=$(__conda_prompt)
+    PS1='$_pre$_conda\[\e[0;32m\]$_pwd\[\e[0m\]\[\e[0;33m\]$_git\[\e[0m\]$_env \$ '
 }
 
 PROMPT_COMMAND=__prompt_command
@@ -90,6 +128,7 @@ alias -- -='cd -'
 if [[ -z $IS_MACOSX ]]; then
     alias o='command open'
     alias oo='o .'
+    alias rstudio='command open -a rstudio'
 fi
 
 # Directory listings -- I prefer 'exa' if I have it
@@ -119,6 +158,49 @@ else
     alias lr='lt -t'
 
 fi
+
+
+# Functions ------------------------------------------------
+
+mkd() {
+    # mkdir + cd together
+    if [[ $# != 1 ]]; then
+        >&2 echo 'Error: mkd only supports one path'
+        return 1
+    fi
+    mkdir -p "$1" && cd "$1" && echo "mkdir '$1'"
+}
+
+cpwd() {
+    # Copy pwd to clipboard
+    if [[ `type -p pbcopy` ]]; then
+        >&2 echo "Command 'pbcopy' is not available."
+        return 1
+    fi
+    pwd | tr -d '\n' | pbcopy
+}
+
+venv() {
+    # Source venv in the current directory
+    local dir_options=(.venv venv .env env)
+    local matched=0
+    for d in "${dir_options[@]}"; do
+        if [[ -d $d ]]; then
+            source "$d/bin/activate"
+            matched=1
+            break
+        fi
+    done
+
+    if [[ $matched == 1 ]]; then
+        which python
+        which pip
+    else
+        >&2 echo 'No virtualenv found.'
+    fi
+
+    unset dir_options matched
+}
 
 
 # Cleanup --------------------------------------------------
