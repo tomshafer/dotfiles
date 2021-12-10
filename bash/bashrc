@@ -107,12 +107,19 @@ __conda_prompt() {
     fi
 }
 
+__term_title() {
+    # https://askubuntu.com/a/143514
+    echo -ne "\033]0;$(pwd) ($(whoami)@$(hostname))\007"
+}
+
 __prompt_command() {
     _pre=$([[ -n $PS1_PREFIX ]] && echo "$PS1_PREFIX ")
     _git=$(__git_prompt)
     _pwd=$(__trunc_pwd)
     _env=$(__venv_prompt)
     _conda=$(__conda_prompt)
+
+    __term_title
     PS1='$_pre$_conda\[\e[0;32m\]$_pwd\[\e[0m\]\[\e[0;33m\]$_git\[\e[0m\]$_env \$ '
 }
 
