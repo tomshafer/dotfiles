@@ -9,7 +9,7 @@ __deduplicate_path() {
     printf %s "$PATH" | awk -v RS=: '!a[$0]++' | paste -s -d: -
 }
 
-[[ `type -t brew` ]] && PATH="$(brew --prefix)/bin:$PATH"
+[[ `type -t brew` ]] && PATH="$(brew --prefix)/bin:$(brew --prefix)/sbin:$PATH"
 [[ -d $HOME/bin ]] && PATH="$HOME/bin:$PATH"
 export PATH=$(__deduplicate_path "$PATH")
 
@@ -109,7 +109,7 @@ __conda_prompt() {
 
 __term_title() {
     # https://askubuntu.com/a/143514
-    echo -ne "\033]0;$(pwd) ($(whoami)@$(hostname))\007"
+    echo -ne "\033]0;$(pwd) ($(whoami)@$(hostname -s))\007"
 }
 
 __prompt_command() {
