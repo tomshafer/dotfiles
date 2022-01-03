@@ -146,8 +146,8 @@ if [[ -n `type -p exa` ]]; then
     alias l='ls -l'
     alias ll='l -a'
     alias la='ll -a'
-    alias lt='l --sort=name'
-    alias lr='lt --reverse'
+    alias lr='l --sort=date'
+    alias lt='lr --reverse'
 
 else
 
