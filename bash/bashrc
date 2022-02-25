@@ -136,6 +136,7 @@ if [[ -n $IS_MACOSX ]]; then
     alias o='command open'
     alias oo='o .'
     alias rstudio='command open -a rstudio'
+    alias st='command open -a sourcetree'
 fi
 
 # Directory listings -- I prefer 'exa' if I have it
@@ -204,6 +205,17 @@ venv() {
     fi
 
     unset dir_options matched
+}
+
+rproj() {
+    if [[ $# -gt 1 ]]; then
+        >&2 echo "Usage: rproj [DIR]"
+        break
+    fi
+    local lsdir=$([[ $# -eq 0 ]] && echo "." || echo "$1")
+    local lspath="`ls $lsdir/*.Rproj | awk '{print $1;}'`"
+    >&2 echo "Opening $lspath"
+    open -a rstudio "$lspath"
 }
 
 
