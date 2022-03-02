@@ -1,23 +1,29 @@
-
-IS_MACOSX=$([[ `uname -s` =~ ^Darwin ]] && echo 1)
-
+IS_MACOSX=$([[ $(uname -s) =~ ^Darwin ]] && echo 1)
 
 # Path -----------------------------------------------------
 
 __deduplicate_path() {
-    # https://unix.stackexchange.com/a/124517
-    printf %s "$PATH" | awk -v RS=: '!a[$0]++' | paste -s -d: -
+  # https://unix.stackexchange.com/a/124517
+  printf %s "$PATH" | awk -v RS=: '!a[$0]++' | paste -s -d: -
 }
 
-[[ `type -t brew` ]] && PATH="$(brew --prefix)/bin:$(brew --prefix)/sbin:$PATH"
+[[ $(type -t brew) ]] && PATH="$(brew --prefix)/bin:$(brew --prefix)/sbin:$PATH"
 [[ -d $HOME/bin ]] && PATH="$HOME/bin:$PATH"
 export PATH=$(__deduplicate_path "$PATH")
-
 
 # Exports --------------------------------------------------
 # Many from https://github.com/mathiasbynens/dotfiles/
 
-export EDITOR="$([[ `type -p code` ]] && echo code -w || echo vim)"
+# Editor preference, in order
+__get_editor() {
+  [[ $(type -p code) ]] && echo "code -w" && return 0
+  [[ $(type -p vim) ]] && echo "vim" && return 0
+  [[ $(type -p vi) ]] && echo "vi" && return 0
+  [[ $(type -p nano) ]] && echo "nano" && return 0
+  return 1
+}
+
+export EDITOR=$(__get_editor)
 export VISUAL="$EDITOR"
 
 # Increase Bash history size. Allow 32³ entries; the default is 500.
@@ -37,187 +43,198 @@ export MANPAGER='less -X'
 # https://stackoverflow.com/a/42265848
 export GPG_TTY=$(tty)
 
-
 # Completion -----------------------------------------------
 
 # Bash completions
 # Cf https://github.com/mathiasbynens/dotfiles/blob/main/.bash_profile
 if [[ -f /etc/bash_completion ]]; then
-    source /etc/bash_completion;
+  source /etc/bash_completion
 fi
 
-if which brew &> /dev/null && [ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]; then
-	# Ensure existing Homebrew v1 completions continue to work
-	export BASH_COMPLETION_COMPAT_DIR="$(brew --prefix)/etc/bash_completion.d";
-	source "$(brew --prefix)/etc/profile.d/bash_completion.sh";
+if which brew &> /dev/null && [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]]; then
+  # Ensure existing Homebrew v1 completions continue to work
+  export BASH_COMPLETION_COMPAT_DIR="$(brew --prefix)/etc/bash_completion.d"
+  source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
 fi
 
 # Add tab completion for SSH hostnames based on ~/.ssh/config, ignoring wildcards
 # https://github.com/mathiasbynens/dotfiles/blob/main/.bash_profile
 if [[ -e $HOME/.ssh/config ]]; then
-    complete \
-        -o "default" \
-        -o "nospace" \
-        -W "$(grep "^Host" ~/.ssh/config | grep -v "[?*]" | cut -d " " -f2- | tr ' ' '\n')" \
-        scp sftp ssh;
+  complete \
+    -o "default" \
+    -o "nospace" \
+    -W "$(grep "^Host" ~/.ssh/config | grep -v "[?*]" | cut -d " " -f2- | tr ' ' '\n')" \
+    scp sftp ssh
 fi
-
 
 # Prompt ---------------------------------------------------
 # https://superuser.com/q/1619614
 
+# Turn /Users/tshafer/somedir/someotherdir -> ~/s/someotherdir
 __trunc_pwd() {
-    # Turn /Users/tshafer/somedir/someotherdir -> ~/s/someotherdir
-    pwd | sed -r -e "s:$HOME:~:" -e 's:([^/])([^/]+/):\1/:g'
+  pwd | sed -r -e "s:$HOME:~:" -e 's:([^/])([^/]+/):\1/:g'
 }
 
+# Custom, simple Git prompt
 __git_prompt() {
-    if [[ `type -t __git_ps1` ]]; then
-
-        __git_ps1 " %s"
-
-    else
-
-        if [[ `type -p git` && `git rev-parse --is-inside-work-tree 2>/dev/null` ]]; then
-
-            # https://github.com/mathiasbynens/dotfiles/
-            # Check for what branch we’re on. Get the short
-	        # symbolic ref. If HEAD isn’t a symbolic ref, get a
-	        # tracking remote branch or tag. Otherwise, get the
-	        # short SHA for the latest commit, or give up.
-	        echo " $(
-                git symbolic-ref --quiet --short HEAD 2> /dev/null || \
-                    git describe --all --exact-match HEAD 2> /dev/null || \
-		            git rev-parse --short HEAD 2> /dev/null || \
-		            echo '(unknown)'
-            )"
-
-        fi
-
+  if [[ $(type -t __git_ps1) ]]; then
+    __git_ps1 " %s"
+  else
+    if [[ $(type -p git) && $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]; then
+      # https://github.com/mathiasbynens/dotfiles/
+      # Check for what branch we’re on. Get the short
+      # symbolic ref. If HEAD isn’t a symbolic ref, get a
+      # tracking remote branch or tag. Otherwise, get the
+      # short SHA for the latest commit, or give up.
+      echo " $(
+        git symbolic-ref --quiet --short HEAD 2> /dev/null \
+          || git describe --all --exact-match HEAD 2> /dev/null \
+          || git rev-parse --short HEAD 2> /dev/null \
+          || echo '(unknown)'
+      )"
     fi
+  fi
 }
 
+# Add a virtualenv marker if active
 __venv_prompt() {
-  [[ -n $VIRTUAL_ENV ]] && printf ' (%s)' `basename $VIRTUAL_ENV`
+  [[ -n $VIRTUAL_ENV ]] && printf ' (%s)' $(basename $VIRTUAL_ENV)
 }
 
+# Add a comda marker if active and not the base env
 __conda_prompt() {
-    if [[ -n $CONDA_PROMPT_MODIFIER && -z $VIRTUAL_ENV ]]; then
-        echo "$CONDA_PROMPT_MODIFIER" | sed -e 's:^.*\(base\).*$::'
-    fi
+  if [[ -n $CONDA_PROMPT_MODIFIER && -z $VIRTUAL_ENV ]]; then
+    echo "$CONDA_PROMPT_MODIFIER" | sed -e 's:^.*\(base\).*$::'
+  fi
 }
 
+# Set the terminal title
 __term_title() {
-    # https://askubuntu.com/a/143514
-    echo -ne "\033]0;$(pwd) ($(whoami)@$(hostname -s))\007"
+  # https://askubuntu.com/a/143514
+  echo -ne "\033]0;$(pwd) ($(whoami)@$(hostname -s))\007"
 }
 
+# This runs and sets PS1 for every new prompt
 __prompt_command() {
-    _pre=$([[ -n $PS1_PREFIX ]] && echo "$PS1_PREFIX ")
-    _git=$(__git_prompt)
-    _pwd=$(__trunc_pwd)
-    _env=$(__venv_prompt)
-    _conda=$(__conda_prompt)
+  _pre=$([[ -n $PS1_PREFIX ]] && echo "$PS1_PREFIX ")
+  _git=$(__git_prompt)
+  _pwd=$(__trunc_pwd)
+  _env=$(__venv_prompt)
+  _conda=$(__conda_prompt)
 
-    __term_title
-    PS1='$_pre$_conda\[\e[0;32m\]$_pwd\[\e[0m\]\[\e[0;33m\]$_git\[\e[0m\]$_env \$ '
+  # Update history: https://askubuntu.com/a/80380
+  history -a
+
+  __term_title
+  PS1='$_pre$_conda\[\e[0;32m\]$_pwd\[\e[0m\]\[\e[0;33m\]$_git\[\e[0m\]$_env \$ '
 }
 
 PROMPT_COMMAND=__prompt_command
-
 
 # Aliases --------------------------------------------------
 
 alias ..='cd ..'
 alias -- -='cd -'
 
-# MacOS only
-if [[ -n $IS_MACOSX ]]; then
-    alias o='command open'
-    alias oo='o .'
-    alias rstudio='command open -a rstudio'
-    alias st='command open -a sourcetree'
+# MacOS only: Use 'open' to open GUI apps and the Finder
+if [[ -n $(type -p open) ]]; then
+  alias o='command open'
+  alias oo='o .'
+  alias rstudio='command open -a RStudio'
+  alias st='command open -a SourceTree'
 fi
 
 # Directory listings -- I prefer 'exa' if I have it
-if [[ -n `type -p exa` ]]; then
+if [[ -n $(type -p exa) ]]; then
 
-    alias ls='exa --no-permissions --octal-permissions --color-scale --group-directories-first --git -Fg'
+  alias ls='exa --no-permissions --octal-permissions --color-scale --group-directories-first --git -Fg'
 
-    alias l='ls -l'
-    alias ll='l -a'
-    alias la='ll -a'
-    alias lr='l --sort=date'
-    alias lt='lr --reverse'
+  alias l='ls -l'
+  alias ll='l -a'
+  alias la='ll -a'
+  alias lr='l --sort=date'
+  alias lt='lr --reverse'
 
 else
 
-    # MacOS has a different set of arguments for ls.
-    colorflag=$(ls --color &>/dev/null && echo "--color" || echo "-G")
+  # MacOS has a different set of arguments for ls.
+  colorflag=$(ls --color &> /dev/null && echo "--color" || echo "-G")
 
-    alias ls="command ls -Fh $colorflag"
-    alias l='ls -l'
-    alias ll='l -Ak'
-    alias la='l -a'
-    alias lt='l -r'
-    alias lr='lt -t'
+  alias ls="command ls -Fh $colorflag"
+  alias l='ls -l'
+  alias ll='l -Ak'
+  alias la='l -a'
+  alias lt='l -r'
+  alias lr='lt -t'
 
 fi
 
+# Within-shell functions -----------------------------------
 
-# Functions ------------------------------------------------
-
-mkd() {
-    # mkdir + cd together
-    if [[ $# != 1 ]]; then
-        >&2 echo 'Error: mkd only supports one path'
-        return 1
-    fi
-    mkdir -p "$1" && cd "$1" && echo "mkdir '$1'"
-}
-
-cpwd() {
-    # Copy pwd to clipboard
-    if [[ -z `type -p pbcopy` ]]; then
-        >&2 echo "Command 'pbcopy' is not available."
-        return 1
-    fi
-    pwd | tr -d '\n' | pbcopy
-}
-
+# Activate a local virtual environment
 venv() {
-    # Source venv in the current directory
-    local dir_options=(.venv venv .env env)
-    local matched=0
-    for d in "${dir_options[@]}"; do
-        if [[ -f $d/bin/activate ]]; then
-            source "$d/bin/activate"
-            matched=1
-            break
-        fi
-    done
+  local venv_dirs=(venv .venv)
+  local quiet=0
 
-    if [[ $matched == 1 ]]; then
-        which python
-        which pip
-    else
-        >&2 echo 'No virtualenv found.'
+  # Show help
+  [[ $# -gt 1 || $1 =~ "-h" ]] && echo >&2 "Usage: venv [-q]" && return 0
+
+  # Set quiet flag
+  [[ $1 =~ "-q" ]] && quiet=1
+
+  # Find and activate the first virtualenv
+  local matched=0
+  for d in "${venv_dirs[@]}"; do
+    if [[ -f $d/bin/activate ]]; then
+      source "$d/bin/activate"
+      matched=1
+      break
     fi
+  done
 
-    unset dir_options matched
+  unset _usage
+
+  # Print Python path(s)
+  if [[ $matched == 1 ]]; then
+    [[ $quiet == 0 ]] && {
+      which python
+      which pip
+    }
+    return 0
+  fi
+
+  [[ $quiet == 0 ]] && echo >&2 'No virtualenv found'
+  return 1
 }
 
+# Copy pwd to clipboard
+cpwd() {
+  __error() {
+    echo >&2 "Command 'pbcopy' is not available"
+  }
+
+  [[ -z $(type -p pbcopy) ]] && __error && return 1
+  pwd | tr -d '\n' | pbcopy
+}
+
+# Run mkdir and cd together
+mkd() {
+  [[ $# != 1 ]] && echo >&2 "Usage: mkd DIRECTORY" && return 1
+  mkdir -p "$1" && cd "$1" && echo >&2 "mkdir \"$1\""
+}
+
+# Find open an RStudio project file in a given directory
 rproj() {
-    if [[ $# -gt 1 ]]; then
-        >&2 echo "Usage: rproj [DIR]"
-        break
-    fi
-    local lsdir=$([[ $# -eq 0 ]] && echo "." || echo "$1")
-    local lspath="`ls $lsdir/*.Rproj | awk '{print $1;}'`"
-    >&2 echo "Opening $lspath"
-    open -a rstudio "$lspath"
-}
+  [[ $# -gt 1 ]] && echo >&2 "Usage: rproj [DIR]" && return 1
 
+  local lsdir=$([[ $# -eq 0 ]] && pwd || echo "$1")
+  local rproj=$(ls $lsdir/*.Rproj 2> /dev/null | sort | head -n 1)
+  [[ ! $rproj ]] && echo >&2 "No .Rproj files found at $lsdir" && return 1
+
+  command=$(echo "open -a 'RStudio' '$(basename $rproj)'")
+  echo >&2 $command
+  eval $command
+}
 
 # Cleanup --------------------------------------------------
 

@@ -5,8 +5,8 @@
 # Usage: install-docker.sh
 
 for df in bash/* python/* hushlogin screenrc; do
-    target="$HOME/.$(basename $df)"
+  target="$HOME/.$(basename $df)"
 
-    echo "$df -> $target"
-    cat "$df" >> "$target"
+  echo "$df -> $target"
+  cat "$df" >> "$target"
 done
