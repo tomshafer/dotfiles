@@ -60,9 +60,7 @@ fi
 # Add tab completion for SSH hostnames based on ~/.ssh/config, ignoring wildcards
 # https://github.com/mathiasbynens/dotfiles/blob/main/.bash_profile
 if [[ -e $HOME/.ssh/config ]]; then
-  complete \
-    -o "default" \
-    -o "nospace" \
+  complete -o "default" -o "nospace" \
     -W "$(grep "^Host" ~/.ssh/config | grep -v "[?*]" | cut -d " " -f2- | tr ' ' '\n')" \
     scp sftp ssh
 fi
@@ -246,6 +244,12 @@ rproj() {
   command=$(echo "open -a 'RStudio' '$(basename $rproj)'")
   echo >&2 $command
   eval $command
+}
+
+# Get a random integer from random.org
+mkrand() {
+  curl "https://www.random.org/integers/?num=1&min=1&max=10000000&col=1&base=10&format=plain&rnd=new"
+  return 0
 }
 
 # Cleanup --------------------------------------------------
