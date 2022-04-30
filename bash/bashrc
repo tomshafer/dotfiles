@@ -149,7 +149,14 @@ PROMPT_COMMAND=__prompt_command
 # Aliases --------------------------------------------------
 
 alias ..='cd ..'
+alias ...='cd ../..'
 alias -- -='cd -'
+
+# Alias g <=> git and enable completion
+alias g='git'
+if [[ `type -t __git_complete` ]]; then
+  __git_complete g __git_main
+fi
 
 # MacOS only: Use 'open' to open GUI apps and the Finder
 if [[ -n $(type -p open) ]]; then
