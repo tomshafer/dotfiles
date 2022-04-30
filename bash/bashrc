@@ -125,8 +125,20 @@ __prompt_command() {
   # Update history: https://askubuntu.com/a/80380
   history -a
 
+  # Colors
+  local path_color="\e[0;32m"
+  local git_color="\e[0;33m"
+
+  [[ -n $PS1_COLOR_PATH ]] && path_color="$PS1_COLOR_PATH"
+  [[ -n $PS1_COLOR_GIT ]] && git_color="$PS1_COLOR_GIT"
+
   __term_title
-  PS1='$_pre$_conda\[\e[0;32m\]$_pwd\[\e[0m\]\[\e[0;33m\]$_git\[\e[0m\]$_env \$ '
+
+  PS1='$_pre$_conda'
+  PS1+="\[$path_color\]"
+  PS1+='$_pwd'
+  PS1+="\[\e[0m\]\[$git_color\]"
+  PS1+='$_git\[\e[0m\]$_env \$ '
 }
 
 PROMPT_COMMAND=__prompt_command
