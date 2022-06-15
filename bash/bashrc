@@ -51,9 +51,16 @@ if [[ -f /etc/bash_completion ]]; then
   source /etc/bash_completion
 fi
 
-# Some systems have bash completions installe here
+# Some systems have bash completions installed here
 if [[ -f /usr/share/bash-completion/bash_completion ]]; then
   source /usr/share/bash-completion/bash_completion
+fi
+
+# ubuntu, debian, and centos have a bunch of scripts here
+if [[ -d /usr/share/bash-completion/completions ]]; then
+  for f in `ls /usr/share/bash-completion/completions`; do
+    source "/usr/share/bash-completion/completions/$f" 2>/dev/null
+  done
 fi
 
 if which brew &> /dev/null && [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]]; then
