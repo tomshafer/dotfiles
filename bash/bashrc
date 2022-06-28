@@ -173,6 +173,12 @@ if [[ -n $(type -p open) ]]; then
   alias st='command open -a SourceTree'
 fi
 
+# If VS Code is installed and available via CLI,
+# then `ncode` aliases `code -n`.
+if [[ `type -t code` ]]; then
+  alias ncode='code -n'
+fi
+
 # Directory listings -- I prefer 'exa' if I have it
 if [[ -n $(type -p exa) ]]; then
 
