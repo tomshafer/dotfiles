@@ -263,10 +263,10 @@ rproj() {
   [[ $# -gt 1 ]] && echo >&2 "Usage: rproj [DIR]" && return 1
 
   local lsdir=$([[ $# -eq 0 ]] && pwd || echo "$1")
-  local rproj=$(ls $lsdir/*.Rproj 2> /dev/null | sort | head -n 1)
+  local rproj=$(ls "$lsdir"/*.Rproj 2> /dev/null | sort | head -n 1)
   [[ ! $rproj ]] && echo >&2 "No .Rproj files found at $lsdir" && return 1
 
-  command=$(echo "open -a 'RStudio' '$(basename $rproj)'")
+  command=$(echo "open -a 'RStudio' '$(basename "$rproj")'")
   echo >&2 $command
   eval $command
 }
