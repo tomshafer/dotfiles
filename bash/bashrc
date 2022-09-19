@@ -271,6 +271,23 @@ rproj() {
   eval $command
 }
 
+# Make a new RStudio project
+mkrproj() {
+  if [[ $# -gt 1 ]]; then
+    >&2 echo "Error: Only one input is supported."
+    >&2 echo "Usage: mkrproj [DIR]"
+    return 1
+  fi
+
+  local path=$([[ $# -eq 0 ]] && echo '.' || echo $1)
+
+  bash -x -c "Rscript -e \"usethis::create_project(path = '$path', rstudio = TRUE)\""
+  bash -x -c "touch '$path/.here'"
+  bash -x -c "rmdir '$path/R'"
+
+  cd "$path"
+}
+
 # Get a random integer from random.org
 mkrand() {
   curl "https://www.random.org/integers/?num=1&min=1&max=10000000&col=1&base=10&format=plain&rnd=new"
