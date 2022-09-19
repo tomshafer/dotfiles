@@ -281,10 +281,9 @@ mkrproj() {
 
   local path=$([[ $# -eq 0 ]] && echo '.' || echo $1)
 
-  bash -x -c "Rscript -e \"usethis::create_project(path = '$path', rstudio = TRUE)\""
-  bash -x -c "touch '$path/.here'"
-  bash -x -c "rmdir '$path/R'"
-
+  bash -x -c "Rscript -e \"usethis::create_project(path = '$path', rstudio = TRUE)\"" && \
+  bash -x -c "touch '$path/.here'" && \
+  bash -x -c "rmdir '$path/R'" && \
   cd "$path"
 }
 
