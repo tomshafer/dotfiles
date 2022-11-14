@@ -293,6 +293,21 @@ mkrand() {
   return 0
 }
 
+# Open man page in a GUI
+mn() {
+  # https://unix.stackexchange.com/a/466486
+  if [[ `type -t open` ]]; then
+    # https://stackoverflow.com/a/31424574
+    mp=$(man $@) && echo "$mp" | col -b | open -a TextEdit -f
+  else
+    >&2 echo "falling back to 'man'"
+    man $@
+  fi
+}
+
+# Extend the completion
+complete -F _man mn
+
 # Cleanup --------------------------------------------------
 
 unset IS_MACOSX
