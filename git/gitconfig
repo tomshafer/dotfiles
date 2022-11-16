@@ -19,6 +19,10 @@
     # Show the user email for the current repository.
     whoami = config user.email
 
+    # GitHub PR and GitLab MR: https://stackoverflow.com/a/30584951
+    pr = "!sh -c \"git fetch ${2:-origin} pull/$1/head:pr-${2:-origin}-$1 && git checkout pr-${2:-origin}-$1\""
+    mr = "!sh -c \"git fetch ${2:-origin} merge-requests/$1/head:mr-${2:-origin}-$1 && git checkout mr-${2:-origin}-$1\""
+
 [branch]
 
     # Show most recently changed branches first.
