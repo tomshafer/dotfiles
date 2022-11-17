@@ -158,10 +158,11 @@ PROMPT_COMMAND=__prompt_command
 alias ..='cd ..'
 alias ...='cd ../..'
 alias -- -='cd -'
+alias cn=coden
 
 # Alias g <=> git and enable completion
 alias g='git'
-if [[ `type -t __git_complete` ]]; then
+if [[ $(type -t __git_complete) ]]; then
   __git_complete g __git_main
 fi
 
@@ -171,12 +172,6 @@ if [[ -n $(type -p open) ]]; then
   alias oo='o .'
   alias rstudio='command open -a RStudio'
   alias st='command open -a SourceTree'
-fi
-
-# If VS Code is installed and available via CLI,
-# then `ncode` aliases `code -n`.
-if [[ `type -t code` ]]; then
-  alias ncode='code -n'
 fi
 
 # Directory listings -- I prefer 'exa' if I have it
@@ -221,6 +216,7 @@ venv() {
   local matched=0
   for d in "${venv_dirs[@]}"; do
     if [[ -f $d/bin/activate ]]; then
+      # shellcheck source=/dev/null
       source "$d/bin/activate"
       matched=1
       break
@@ -296,13 +292,21 @@ mkrand() {
 # Open man page in a GUI
 mn() {
   # https://unix.stackexchange.com/a/466486
-  if [[ `type -t open` ]]; then
+  if [[ $(type -t open) ]]; then
     # https://stackoverflow.com/a/31424574
-    mp=$(man $@) && echo "$mp" | col -b | open -a TextEdit -f
+    mp=$(man "$@") && echo "$mp" | col -b | open -a TextEdit -f
   else
     >&2 echo "falling back to 'man'"
-    man $@
+    man "$@"
   fi
+}
+
+# Open a new VS Code window, maybe in the current directory
+coden() {
+  local dest
+  dest=$(if [[ $# -eq 0 ]]; then echo "."; else echo "$@"; fi)
+  echo "code -n $dest" >&2
+  code -n "$dest"
 }
 
 # Extend the completion
