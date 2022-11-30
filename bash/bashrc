@@ -121,9 +121,10 @@ __venv_prompt() {
   [[ -n $VIRTUAL_ENV ]] && printf ' (%s)' "$(basename "$VIRTUAL_ENV")"
 }
 
-# Add a comda marker if active and not the base env
+# Add a conda marker if active and not the base env
 __conda_prompt() {
   if [[ -n $CONDA_PROMPT_MODIFIER && -z $VIRTUAL_ENV ]]; then
+    # shellcheck disable=SC2001
     echo "$CONDA_PROMPT_MODIFIER" | sed -e 's:^.*\(base\).*$::'
   fi
 }
