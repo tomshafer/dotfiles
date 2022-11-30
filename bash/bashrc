@@ -1,4 +1,4 @@
-IS_MACOSX=$([[ $(uname -s) =~ ^Darwin ]] && echo 1)
+#!/usr/bin/env bash
 
 # Path -----------------------------------------------------
 
@@ -9,7 +9,9 @@ __deduplicate_path() {
 
 [[ $(type -t brew) ]] && PATH="$(brew --prefix)/bin:$(brew --prefix)/sbin:$PATH"
 [[ -d $HOME/bin ]] && PATH="$HOME/bin:$PATH"
-export PATH=$(__deduplicate_path "$PATH")
+
+PATH=$(__deduplicate_path "$PATH")
+export PATH
 
 # Exports --------------------------------------------------
 # Many from https://github.com/mathiasbynens/dotfiles/
@@ -23,49 +25,57 @@ __get_editor() {
   return 1
 }
 
-export EDITOR=$(__get_editor)
-export VISUAL="$EDITOR"
+EDITOR=$(__get_editor)
+export EDITOR
+export VISUAL=$EDITOR
 
 # Increase Bash history size. Allow 32³ entries; the default is 500.
-export HISTSIZE='32768'
+export HISTSIZE="32768"
 export HISTFILESIZE="${HISTSIZE}"
 # Omit duplicates and commands that begin with a space from history.
-export HISTCONTROL='ignoreboth'
+export HISTCONTROL="ignoreboth"
 
 # Prefer US English and use UTF-8.
-export LANG='en_US.UTF-8'
-export LC_ALL='en_US.UTF-8'
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
 
 # Don’t clear the screen after quitting a manual page.
-export MANPAGER='less -X'
+export MANPAGER="less -X"
 
 # Avoid issues with `gpg` as installed via Homebrew.
 # https://stackoverflow.com/a/42265848
-export GPG_TTY=$(tty)
+GPG_TTY=$(tty)
+export GPG_TTY
 
 # Completion -----------------------------------------------
 
 # Bash completions
 # Cf https://github.com/mathiasbynens/dotfiles/blob/main/.bash_profile
 if [[ -f /etc/bash_completion ]]; then
+  # shellcheck source=/dev/null
   source /etc/bash_completion
 fi
 
 # Some systems have bash completions installed here
 if [[ -f /usr/share/bash-completion/bash_completion ]]; then
+  # shellcheck source=/dev/null
   source /usr/share/bash-completion/bash_completion
 fi
 
 # ubuntu, debian, and centos have a bunch of scripts here
 if [[ -d /usr/share/bash-completion/completions ]]; then
-  for f in `ls /usr/share/bash-completion/completions`; do
-    source "/usr/share/bash-completion/completions/$f" 2>/dev/null
+  for f in /usr/share/bash-completion/completions/*; do
+    # shellcheck source=/dev/null
+    source "$f" 2>/dev/null
   done
 fi
 
 if which brew &> /dev/null && [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]]; then
   # Ensure existing Homebrew v1 completions continue to work
-  export BASH_COMPLETION_COMPAT_DIR="$(brew --prefix)/etc/bash_completion.d"
+  BASH_COMPLETION_COMPAT_DIR="$(brew --prefix)/etc/bash_completion.d"
+  export BASH_COMPLETION_COMPAT_DIR
+
+  # shellcheck source=/dev/null
   source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
 fi
 
@@ -108,7 +118,7 @@ __git_prompt() {
 
 # Add a virtualenv marker if active
 __venv_prompt() {
-  [[ -n $VIRTUAL_ENV ]] && printf ' (%s)' $(basename $VIRTUAL_ENV)
+  [[ -n $VIRTUAL_ENV ]] && printf ' (%s)' "$(basename "$VIRTUAL_ENV")"
 }
 
 # Add a comda marker if active and not the base env
@@ -258,13 +268,14 @@ mkd() {
 rproj() {
   [[ $# -gt 1 ]] && echo >&2 "Usage: rproj [DIR]" && return 1
 
-  local lsdir=$([[ $# -eq 0 ]] && pwd || echo "$1")
-  local rproj=$(ls "$lsdir"/*.Rproj 2> /dev/null | sort | head -n 1)
+  local lsdir rproj
+  lsdir=$([[ $# -eq 0 ]] && pwd || echo "$1")
+  rproj=$(find "$lsdir" -type f -iname '*.rproj' | sort | head -n 1)
   [[ ! $rproj ]] && echo >&2 "No .Rproj files found at $lsdir" && return 1
 
-  command=$(echo "open -a 'RStudio' '$(basename "$rproj")'")
-  echo >&2 $command
-  eval $command
+  command=(open -a RStudio "$(basename "$rproj")")
+  echo "${command[@]}" >&2
+  "${command[@]}"
 }
 
 # Make a new RStudio project
@@ -275,12 +286,13 @@ mkrproj() {
     return 1
   fi
 
-  local path=$([[ $# -eq 0 ]] && echo '.' || echo $1)
+  local path
+  path=$([[ $# -eq 0 ]] && echo '.' || echo "$1")
 
   bash -x -c "Rscript -e \"usethis::create_project(path = '$path', rstudio = TRUE)\"" && \
   bash -x -c "touch '$path/.here'" && \
   bash -x -c "rmdir '$path/R'" && \
-  cd "$path"
+  cd "$path" || return
 }
 
 # Get a random integer from random.org
@@ -311,7 +323,3 @@ coden() {
 
 # Extend the completion
 complete -F _man mn
-
-# Cleanup --------------------------------------------------
-
-unset IS_MACOSX
