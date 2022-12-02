@@ -193,7 +193,8 @@ if [[ -n $(type -p exa) ]]; then
         --octal-permissions \
         --color-scale \
         --group-directories-first \
-        --git
+        --git \
+        "$@"
   }
 
   function l  { __redef_ls -l          "$@"; }
