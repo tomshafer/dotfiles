@@ -187,27 +187,30 @@ fi
 
 # Directory listings -- I prefer 'exa' if I have it
 if [[ -n $(type -p exa) ]]; then
+  function __redef_ls {
+    exa -Fg \
+        --no-permissions \
+        --octal-permissions \
+        --color-scale \
+        --group-directories-first \
+        --git
+  }
 
-  alias ls='exa --no-permissions --octal-permissions --color-scale --group-directories-first --git -Fg'
-
-  alias l='ls -l'
-  alias ll='l -a'
-  alias la='ll -a'
-  alias lr='l --sort=date'
-  alias lt='lr --reverse'
-
+  function l  { __redef_ls -l          "$@"; }
+  function ll { l          -a          "$@"; }
+  function la { l          -aa         "$@"; }
+  function lr { l          --sort=date "$@"; }
+  function lt { lr         --reverse   "$@"; }
 else
+  function __redef_ls {
+    ls -Fh --color=auto "$@"
+  }
 
-  # MacOS has a different set of arguments for ls.
-  colorflag=$(ls --color &> /dev/null && echo "--color" || echo "-G")
-
-  alias ls="command ls -Fh $colorflag"
-  alias l='ls -l'
-  alias ll='l -Ak'
-  alias la='l -a'
-  alias lt='l -r'
-  alias lr='lt -t'
-
+  function l  { __redef_ls -l "$@"; }
+  function ll { l          -A "$@"; }
+  function la { l          -a "$@"; }
+  function lt { l          -r "$@"; }
+  function lr { lt         -t "$@"; }
 fi
 
 # Within-shell functions -----------------------------------
