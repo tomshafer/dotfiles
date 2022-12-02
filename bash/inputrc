@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Up and down arrows for searching history
 # https://superuser.com/a/1332850
 "\e[A": history-search-backward
