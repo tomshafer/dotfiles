@@ -9,4 +9,11 @@ done
 
 # Include .bashrc ------------------------------------------
 
+# shellcheck source=/dev/null
 [ -f ~/.bashrc ] && . ~/.bashrc
+
+# Remove unwanted aliases ----------------------------------
+
+for alias in ls ll l la lt lr xx l2; do
+  [[ $(type -t $alias) == "alias" ]] && unalias "$alias"
+done
