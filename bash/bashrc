@@ -19,9 +19,9 @@ export PATH
 # Editor preference, in order
 __get_editor() {
   [[ $(type -p code) ]] && echo "code -w" && return 0
-  [[ $(type -p vim) ]] && echo "vim" && return 0
-  [[ $(type -p vi) ]] && echo "vi" && return 0
-  [[ $(type -p nano) ]] && echo "nano" && return 0
+  [[ $(type -p vim) ]]  && echo "vim"     && return 0
+  [[ $(type -p vi) ]]   && echo "vi"      && return 0
+  [[ $(type -p nano) ]] && echo "nano"    && return 0
   return 1
 }
 
@@ -318,6 +318,9 @@ mn() {
   fi
 }
 
+# Extend the completion
+complete -F _man mn
+
 # Open a new VS Code window, maybe in the current directory
 coden() {
   local dest
@@ -326,5 +329,39 @@ coden() {
   code -n "$dest"
 }
 
-# Extend the completion
-complete -F _man mn
+# Compare a file's MD5 checksum to a known value
+checkmd5sum() {
+  local original_checksum
+
+  _usage() {
+    echo >&2 "Usage: checkmd5sum -c <checksum> <file>"
+  }
+
+  OPTIND=1  # https://unix.stackexchange.com/a/430339
+
+  while getopts "hc:" opt; do
+    case "${opt}" in
+      c)
+        original_checksum="$OPTARG"
+        ;;
+      *)
+        _usage
+        return 0
+        ;;
+    esac
+  done
+
+  shift $((OPTIND-1))
+  [[ $# -ne 1 ]] && _usage && return 1
+
+  checksum=$(md5 -q "$1")
+  if [[ "$checksum" != "$original_checksum" ]]; then
+    echo   >&2 "Checksums do not match:"
+    printf >&2 "  %s (input)\n" "$original_checksum"
+    printf >&2 "  %s (file)\n"  "$checksum"
+    return 1
+  fi
+
+  echo >&2 "✔︎ Checksums OK"
+  return 0
+}
