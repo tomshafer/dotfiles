@@ -353,6 +353,17 @@ checkmd5sum() {
 
   shift $((OPTIND-1))
   [[ $# -ne 1 ]] && _usage && return 1
+  [[ -z $original_checksum ]] && _usage && return 1
+
+  # Compute the checksum
+  if [[ $(type -t md5) ]]; then
+    checksum=$(md5 -q "$1")
+  elif [[ $(type -t md5sum) ]]; then
+    checksum=$(md5sum "$1" | cut -d " " -f 1)
+  else
+    echo >&2 "Neither md5 nor md5sum found on this machine."
+    return 1
+  fi
 
   checksum=$(md5 -q "$1")
   if [[ "$checksum" != "$original_checksum" ]]; then
