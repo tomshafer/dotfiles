@@ -1,5 +1,12 @@
 channels:
   - conda-forge
   - defaults
-
+show_channel_urls: true
 channel_priority: strict
+create_default_packages:
+  - pip
+  - wheel
+  - flake8
+  - black
+  - mypy
+  - isort
