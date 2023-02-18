@@ -41,6 +41,10 @@ export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 
 # Use `bat` for paging
+if [[ -z $(type -t bat) && -n $(type -t batcat) ]]; then
+  alias bat="batcat"
+fi
+
 if [[ $(type -t bat) ]]; then
   export MANPAGER="sh -c 'col -bx | bat -l man -p --pager=\"less -RF\"'"
 else
