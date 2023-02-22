@@ -1,7 +1,27 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1091
 
+if [[ "${TRACE-0}" == "1" ]]; then
+  set -o xtrace
+fi
+
+gettime() {
+  if [[ -n ${TIME-} ]]; then
+    # Milliseconds: https://superuser.com/a/713000
+    perl -MTime::HiRes -e 'printf("%.0f\n", Time::HiRes::time() * 1000)'
+  fi
+}
+
+printtime() {
+  if [[ -n ${TIME-} ]]; then
+    delta=$(echo "$3 - $2" | bc -l)
+    echo >&2 "T($1): $delta ms"
+  fi
+}
+
 # Path -----------------------------------------------------
+
+_time1=$(gettime)
 
 __deduplicate_path() {
   # https://unix.stackexchange.com/a/124517
@@ -14,8 +34,13 @@ __deduplicate_path() {
 PATH=$(__deduplicate_path "$PATH")
 export PATH
 
+_time2=$(gettime)
+printtime "Path" "$_time1" "$_time2"
+
 # Exports --------------------------------------------------
 # Many from https://github.com/mathiasbynens/dotfiles/
+
+_time1=$(gettime)
 
 # Editor preference, in order
 __get_editor() {
@@ -58,11 +83,16 @@ export GPG_TTY
 
 # Homebrew defaults
 if [[ $(type -t brew) ]]; then
-  export HOMEBREW_NO_ANALYTICS=1
+  export HOMEBREW_NO_GOOGLE_ANALYTICS=1
   export HOMEBREW_NO_ENV_HINTS=1
 fi
 
+_time2=$(gettime)
+printtime "Exports" "$_time1" "$_time2"
+
 # Completion -----------------------------------------------
+
+_time1=$(gettime)
 
 # Bash completions
 # Cf https://github.com/mathiasbynens/dotfiles/blob/main/.bash_profile
@@ -100,8 +130,13 @@ if [[ -e $HOME/.ssh/config ]]; then
   unset ssh_complete_hosts_
 fi
 
+_time2=$(gettime)
+printtime "Completion" "$_time1" "$_time2"
+
 # Prompt ---------------------------------------------------
 # https://superuser.com/q/1619614
+
+_time1=$(gettime)
 
 # Turn /Users/tshafer/somedir/someotherdir -> ~/s/someotherdir
 __trunc_pwd() {
@@ -131,12 +166,12 @@ __git_prompt() {
 
 # Add a virtualenv marker if active
 __venv_prompt() {
-  [[ -n $VIRTUAL_ENV ]] && printf ' (%s)' "$(basename "$VIRTUAL_ENV")"
+  [[ -n ${VIRTUAL_ENV-} ]] && printf ' (%s)' "$(basename "$VIRTUAL_ENV")"
 }
 
 # Add a conda marker if active and not the base env
 __conda_prompt() {
-  if [[ -n $CONDA_PROMPT_MODIFIER && -z $VIRTUAL_ENV ]]; then
+  if [[ -n $CONDA_PROMPT_MODIFIER && -z ${VIRTUAL_ENV-} ]]; then
     # shellcheck disable=SC2001
     echo "$CONDA_PROMPT_MODIFIER" | sed -e 's:^.*\(base\).*$::'
   fi
@@ -150,7 +185,7 @@ __term_title() {
 
 # This runs and sets PS1 for every new prompt
 __prompt_command() {
-  _pre=$([[ -n $PS1_PREFIX ]] && echo "$PS1_PREFIX ")
+  _pre=$([[ -n ${PS1_PREFIX-} ]] && echo "$PS1_PREFIX ")
   _git=$(__git_prompt)
   _pwd=$(__trunc_pwd)
   _env=$(__venv_prompt)
@@ -160,11 +195,8 @@ __prompt_command() {
   history -a
 
   # Colors
-  local path_color="\e[0;32m"
-  local git_color="\e[0;33m"
-
-  [[ -n $PS1_COLOR_PATH ]] && path_color="$PS1_COLOR_PATH"
-  [[ -n $PS1_COLOR_GIT ]] && git_color="$PS1_COLOR_GIT"
+  local path_color="${PS1_COLOR_PATH:-\e[0;32m}"
+  local git_color="${PS1_COLOR_GIT:-\e[0;33m}"
 
   __term_title
 
@@ -177,7 +209,12 @@ __prompt_command() {
 
 PROMPT_COMMAND=__prompt_command
 
+_time2=$(gettime)
+printtime "Prompt" "$_time1" "$_time2"
+
 # Aliases --------------------------------------------------
+
+_time1=$(gettime)
 
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -227,7 +264,12 @@ else
   function lr { lt         -t "$@"; }
 fi
 
+_time2=$(gettime)
+printtime "Aliases" "$_time1" "$_time2"
+
 # Within-shell functions -----------------------------------
+
+_time1=$(gettime)
 
 # Activate a local virtual environment
 venv() {
@@ -389,3 +431,6 @@ checkmd5sum() {
   echo >&2 "✔︎ Checksums OK"
   return 0
 }
+
+_time2=$(gettime)
+printtime "Functions" "$_time1" "$_time2"
