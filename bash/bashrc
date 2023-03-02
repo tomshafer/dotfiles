@@ -341,9 +341,11 @@ mkrproj() {
   local path
   path=$([[ $# -eq 0 ]] && echo '.' || echo "$1")
 
-  bash -x -c "Rscript -e \"usethis::create_project(path = '$path', rstudio = TRUE)\"" && \
-  bash -x -c "touch '$path/.here'" && \
-  bash -x -c "rmdir '$path/R'" && \
+  sh -c "Rscript -e \"
+      assignInNamespace('allow_nested_project', function() TRUE, asNamespace('usethis'))
+      usethis::create_project(path = '$path', rstudio = TRUE)\"" \
+    && rmdir "$path/R"
+
   cd "$path" || return
 }
 
