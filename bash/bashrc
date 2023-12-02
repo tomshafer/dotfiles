@@ -83,7 +83,6 @@ export GPG_TTY
 
 # Homebrew defaults
 if [[ $(type -t brew) ]]; then
-  export HOMEBREW_NO_GOOGLE_ANALYTICS=1
   export HOMEBREW_NO_ENV_HINTS=1
 fi
 
