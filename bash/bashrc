@@ -232,7 +232,6 @@ if [[ -n $(type -p exa) ]]; then
     exa -Fg \
         --no-permissions \
         --octal-permissions \
-        --color-scale \
         --group-directories-first \
         --git \
         "$@"
@@ -341,7 +340,7 @@ mkrproj() {
   path=$([[ $# -eq 0 ]] && echo '.' || echo "$1")
 
   sh -c "Rscript -e \"
-      assignInNamespace('allow_nested_project', function() TRUE, asNamespace('usethis'))
+      options('usethis.allow_nested_project' = TRUE)
       usethis::create_project(path = '$path', rstudio = TRUE)\"" \
     && rmdir "$path/R"
 
