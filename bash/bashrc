@@ -45,9 +45,9 @@ _time1=$(gettime)
 # Editor preference, in order
 __get_editor() {
   [[ $(type -p code) ]] && echo "code -w" && return 0
-  [[ $(type -p vim) ]]  && echo "vim"     && return 0
-  [[ $(type -p vi) ]]   && echo "vi"      && return 0
-  [[ $(type -p nano) ]] && echo "nano"    && return 0
+  [[ $(type -p vim) ]] && echo "vim" && return 0
+  [[ $(type -p vi) ]] && echo "vi" && return 0
+  [[ $(type -p nano) ]] && echo "nano" && return 0
   return 1
 }
 
@@ -104,7 +104,7 @@ if [[ -f /usr/share/bash-completion/bash_completion ]]; then
   source /usr/share/bash-completion/bash_completion
 fi
 
-if which brew &> /dev/null && [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]]; then
+if which brew &>/dev/null && [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]]; then
   # Ensure existing Homebrew v1 completions continue to work
   BASH_COMPLETION_COMPAT_DIR="$(brew --prefix)/etc/bash_completion.d"
   export BASH_COMPLETION_COMPAT_DIR
@@ -139,17 +139,17 @@ __git_prompt() {
   if [[ $(type -t __git_ps1) ]]; then
     __git_ps1 " %s"
   else
-    if [[ $(type -p git) && $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]; then
+    if [[ $(type -p git) && $(git rev-parse --is-inside-work-tree 2>/dev/null) ]]; then
       # https://github.com/mathiasbynens/dotfiles/
       # Check for what branch we’re on. Get the short
       # symbolic ref. If HEAD isn’t a symbolic ref, get a
       # tracking remote branch or tag. Otherwise, get the
       # short SHA for the latest commit, or give up.
       echo " $(
-        git symbolic-ref --quiet --short HEAD 2> /dev/null \
-          || git describe --all --exact-match HEAD 2> /dev/null \
-          || git rev-parse --short HEAD 2> /dev/null \
-          || echo '(unknown)'
+        git symbolic-ref --quiet --short HEAD 2>/dev/null ||
+          git describe --all --exact-match HEAD 2>/dev/null ||
+          git rev-parse --short HEAD 2>/dev/null ||
+          echo '(unknown)'
       )"
     fi
   fi
@@ -230,28 +230,28 @@ fi
 if [[ -n $(type -p exa) ]]; then
   function __redef_ls {
     exa -Fg \
-        --no-permissions \
-        --octal-permissions \
-        --group-directories-first \
-        --git \
-        "$@"
+      --no-permissions \
+      --octal-permissions \
+      --group-directories-first \
+      --git \
+      "$@"
   }
 
-  function l  { __redef_ls -l          "$@"; }
-  function ll { l          -a          "$@"; }
-  function la { l          -aa         "$@"; }
-  function lr { l          --sort=date "$@"; }
-  function lt { lr         --reverse   "$@"; }
+  function l { __redef_ls -l "$@"; }
+  function ll { l -a "$@"; }
+  function la { l -aa "$@"; }
+  function lr { l --sort=date "$@"; }
+  function lt { lr --reverse "$@"; }
 else
   function __redef_ls {
     ls -Fh --color=auto "$@"
   }
 
-  function l  { __redef_ls -l "$@"; }
-  function ll { l          -A "$@"; }
-  function la { l          -a "$@"; }
-  function lt { l          -r "$@"; }
-  function lr { lt         -t "$@"; }
+  function l { __redef_ls -l "$@"; }
+  function ll { l -A "$@"; }
+  function la { l -a "$@"; }
+  function lt { l -r "$@"; }
+  function lr { lt -t "$@"; }
 fi
 
 _time2=$(gettime)
@@ -331,8 +331,8 @@ rproj() {
 # Make a new RStudio project
 mkrproj() {
   if [[ $# -gt 1 ]]; then
-    >&2 echo "Error: Only one input is supported."
-    >&2 echo "Usage: mkrproj [DIR]"
+    echo >&2 "Error: Only one input is supported."
+    echo >&2 "Usage: mkrproj [DIR]"
     return 1
   fi
 
@@ -341,15 +341,53 @@ mkrproj() {
 
   sh -c "Rscript -e \"
       options('usethis.allow_nested_project' = TRUE)
-      usethis::create_project(path = '$path', rstudio = TRUE)\"" \
-    && rmdir "$path/R"
+      usethis::create_project(path = '$path', rstudio = TRUE)\"" &&
+    rmdir "$path/R"
 
   cd "$path" || return
 }
 
-# Get a random integer from random.org
+# Get a 3-byte integer from /dev/urandom
 mkrand() {
-  curl "https://www.random.org/integers/?num=1&min=1&max=10000000&col=1&base=10&format=plain&rnd=new"
+  _usage() {
+    echo 2>&1 "Usage: mkrand [-h] [-p] -[b bytes]"
+  }
+
+  OPTIND=1 # https://unix.stackexchange.com/a/430339
+  local nb=3
+  local pb=0
+
+  while getopts "hpb:" opt; do
+    case $opt in
+    h)
+      _usage
+      return 0
+      ;;
+    p)
+      pb=1
+      ;;
+    b)
+      nb=$OPTARG
+      if [[ $nb -lt 1 || $nb -gt 4 ]]; then
+        echo 2>&1 "mkrand only supports 1-to-4-byte integers"
+        return 1
+      fi
+      ;;
+    *)
+      _usage
+      return 1
+      ;;
+    esac
+  done
+  shift $((OPTIND - 1))
+
+  ri=$(od -D <(head -c "$nb" /dev/urandom) | head -n 1 | grep -Eo '[0-9]+\s*$' | tr -d ' \n')
+  echo "$ri"
+
+  if [[ $pb == 1 ]]; then
+    echo "$ri" | tr -d ' \n' | pbcopy
+  fi
+
   return 0
 }
 
@@ -360,7 +398,7 @@ mn() {
     # https://stackoverflow.com/a/31424574
     mp=$(man "$@") && echo "$mp" | col -b | open -a TextEdit -f
   else
-    >&2 echo "falling back to 'man'"
+    echo >&2 "falling back to 'man'"
     man "$@"
   fi
 }
@@ -384,21 +422,21 @@ checkmd5sum() {
     echo >&2 "Usage: checkmd5sum -c <checksum> <file>"
   }
 
-  OPTIND=1  # https://unix.stackexchange.com/a/430339
+  OPTIND=1 # https://unix.stackexchange.com/a/430339
 
   while getopts "hc:" opt; do
     case "${opt}" in
-      c)
-        original_checksum="$OPTARG"
-        ;;
-      *)
-        _usage
-        return 0
-        ;;
+    c)
+      original_checksum="$OPTARG"
+      ;;
+    *)
+      _usage
+      return 0
+      ;;
     esac
   done
 
-  shift $((OPTIND-1))
+  shift $((OPTIND - 1))
   [[ $# -ne 1 ]] && _usage && return 1
   [[ -z $original_checksum ]] && _usage && return 1
 
@@ -414,9 +452,9 @@ checkmd5sum() {
 
   checksum=$(md5 -q "$1")
   if [[ "$checksum" != "$original_checksum" ]]; then
-    echo   >&2 "Checksums do not match:"
+    echo >&2 "Checksums do not match:"
     printf >&2 "  %s (input)\n" "$original_checksum"
-    printf >&2 "  %s (file)\n"  "$checksum"
+    printf >&2 "  %s (file)\n" "$checksum"
     return 1
   fi
 
