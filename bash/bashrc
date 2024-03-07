@@ -5,6 +5,14 @@ if [[ "${TRACE-0}" == "1" ]]; then
   set -o xtrace
 fi
 
+export_all() {
+  # https://stackoverflow.com/a/30969768
+  set -o allexport
+  # shellcheck disable=SC1090
+  for f in "$@"; do source "$f"; done
+  set +o allexport
+}
+
 gettime() {
   if [[ -n ${TIME-} ]]; then
     # Milliseconds: https://superuser.com/a/713000
