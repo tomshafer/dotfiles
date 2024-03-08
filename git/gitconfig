@@ -23,6 +23,12 @@
     pr = "!sh -c \"git fetch ${2:-origin} pull/$1/head:pr-${2:-origin}-$1 && git checkout pr-${2:-origin}-$1\""
     mr = "!sh -c \"git fetch ${2:-origin} merge-requests/$1/head:mr-${2:-origin}-$1 && git checkout mr-${2:-origin}-$1\""
 
+    co = checkout
+    ci = commit
+    cim = commit -m
+    p = pull
+
+
 [branch]
 
     # Show most recently changed branches first.

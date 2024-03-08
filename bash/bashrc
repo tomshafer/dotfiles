@@ -13,6 +13,15 @@ export_all() {
   set +o allexport
 }
 
+# Add entries to gitignore
+gi() {
+  [[ $# == 0 ]] && return 0
+  [[ ! -e .gitignore ]] && touch .gitignore
+  for entry in "$@"; do
+    grep -q "^$entry$" .gitignore || echo "$entry" >> .gitignore
+  done
+}
+
 gettime() {
   if [[ -n ${TIME-} ]]; then
     # Milliseconds: https://superuser.com/a/713000
