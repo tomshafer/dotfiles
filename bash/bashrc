@@ -18,7 +18,7 @@ gi() {
   [[ $# == 0 ]] && return 0
   [[ ! -e .gitignore ]] && touch .gitignore
   for entry in "$@"; do
-    grep -q "^$entry$" .gitignore || echo "$entry" >> .gitignore
+    grep -q "^$entry$" .gitignore || echo "$entry" >>.gitignore
   done
 }
 
@@ -33,6 +33,79 @@ printtime() {
   if [[ -n ${TIME-} ]]; then
     delta=$(echo "$3 - $2" | bc -l)
     echo >&2 "T($1): $delta ms"
+  fi
+}
+
+mkvenv() {
+  _usage() {
+    echo 2>&1 "Usage: mkvenv [-h] [-a] [-n DIR_NAME] CONDA_ENV"
+    echo 2>&1 ""
+    echo 2>&1 "Positional Arguments:"
+    echo 2>&1 "  CONDA_ENV    Name of the conda environment from which to derive."
+    echo 2>&1 ""
+    echo 2>&1 "Options:"
+    echo 2>&1 "  -h           Show this help."
+    echo 2>&1 "  -a           Activate the virtualenv after creation."
+    echo 2>&1 "  -n NAME      Place the virtualenv in directory DIR_NAME (default: venv)."
+  }
+
+  local activate=0
+  local name="venv"
+
+  OPTIND=1
+  while getopts "han:" opt; do
+    case $opt in
+    h)
+      _usage
+      return 0
+      ;;
+    a)
+      activate=1
+      ;;
+    n)
+      name="$OPTARG"
+      ;;
+    *)
+      _usage
+      return 1
+      ;;
+    esac
+  done
+
+  # Only 1 targt env
+  shift $((OPTIND - 1))
+  [[ $# -ne 1 ]] && _usage && return 1
+
+  # Exactly 1 result
+  env=$(conda info -e | grep -E "^${1//./\\.}\s+")
+  if [[ ! $env || ${#env[@]} -gt 1 ]]; then
+    echo 2>&1 "Could not locate single conda environment '$1'"
+    return 1
+  fi
+
+  # Env directory cannot already exist
+  if [[ -d "$name" ]]; then
+    echo 2>&1 "Directory '$name' already exists; won't create"
+    return 1
+  fi
+
+  # Make the virtualenv
+  version=$(echo "$env" | cut -d ' ' -f 1)
+  envpath=$(echo "$env" | rev | cut -d ' ' -f 1 | rev)
+  cmd="$envpath/bin/python$version -m venv \"$name\""
+
+  echo >&2 "$cmd"
+  eval "$cmd"
+
+  # Activate the env if requested
+  if [[ $activate ]]; then
+    cmd="source \"$name/bin/activate\""
+
+    echo >&2 "$cmd"
+    eval "$cmd"
+
+    echo "- pip: $(which pip)"
+    echo "- python: $(which python)"
   fi
 }
 
