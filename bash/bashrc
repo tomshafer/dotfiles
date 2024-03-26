@@ -501,7 +501,8 @@ coden() {
   local dest
   dest=$(if [[ $# -eq 0 ]]; then echo "."; else echo "$@"; fi)
   echo "code -n $dest" >&2
-  code -n "$dest"
+  # Filter out the code-signing error from stderr: https://stackoverflow.com/a/52575087
+  code -n "$dest" 2> >(grep -vE ".*ERROR.*\(-67062\)$" >&2)
 }
 
 # Compare a file's MD5 checksum to a known value
