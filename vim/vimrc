@@ -1,2 +1,15 @@
+set nocompatible
+set number
+set ruler
+set shiftwidth=4
+set tabstop=4
+set softtabstop=4
+set expandtab
+set shiftround
+
+" filetype support
+filetype plugin indent on
 syntax on
 
+" https://superuser.com/a/632661
+autocmd FileType make set noexpandtab shiftwidth=8 softtabstop=0
