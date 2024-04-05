@@ -89,20 +89,26 @@ mkvenv() {
     return 1
   fi
 
-  # Make the virtualenv
+  # Make the virtualenv, using 'uv' if we have it
   version=$(echo "$env" | cut -d ' ' -f 1)
   envpath=$(echo "$env" | rev | cut -d ' ' -f 1 | rev)
-  cmd="$envpath/bin/python$version -m venv \"$name\""
 
-  echo >&2 "$cmd"
-  eval "$cmd"
+  if command -v uv >/dev/null; then
+    cmd="uv venv -p \"$envpath/bin/python$version\" \"$name\""
+    echo >&2 "$cmd" && eval "$cmd"
+
+    # Add pip and setuptools in case we forget to use 'uv pip'
+    cmd="uv pip install -p \"$name/bin/python$version\" pip setuptools"
+    echo >&2 "$cmd" && eval "$cmd"
+  else
+    cmd="\"$envpath/bin/python$version\" -m venv \"$name\""
+    echo >&2 "$cmd" && eval "$cmd"
+  fi
 
   # Activate the env if requested
-  if [[ $activate ]]; then
+  if [[ $activate -gt 0 ]]; then
     cmd="source \"$name/bin/activate\""
-
-    echo >&2 "$cmd"
-    eval "$cmd"
+    echo >&2 "$cmd" && eval "$cmd"
 
     echo "- pip: $(which pip)"
     echo "- python: $(which python)"
