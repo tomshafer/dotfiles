@@ -322,8 +322,18 @@ if [[ -n $(type -p open) ]]; then
   alias st='command open -a SourceTree'
 fi
 
-# Directory listings -- I prefer 'exa' if I have it
-if [[ -n $(type -p exa) ]]; then
+# Directory listings -- I prefer 'lsd' and 'exa' if I have them
+if [[ -n $(type -p lsd) ]]; then
+  function __redef_ls {
+    lsd -Fg "$@"
+  }
+  function ls { __redef_ls "$@"; }
+  function l { __redef_ls -l "$@"; }
+  function ll { l -a "$@"; }
+  function la { l -aa "$@"; }
+  function lr { l -t "$@"; }
+  function lt { lr -r "$@"; }
+elif [[ -n $(type -p exa) ]]; then
   function __redef_ls {
     exa -Fg \
       --no-permissions \

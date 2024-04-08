@@ -1,0 +1,6 @@
+date: +%a %b %e %k:%M %Y
+hyperlink: never
+no-symlink: false
+permission: octal
+sorting:
+  dir-grouping: first

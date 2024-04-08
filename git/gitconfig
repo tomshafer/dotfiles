@@ -28,6 +28,7 @@
     ci = commit
     cim = commit -m
     p = pull
+    pu = push
     au = add -u
 
 [branch]
