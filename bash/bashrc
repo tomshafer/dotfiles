@@ -5,6 +5,11 @@ if [[ "${TRACE-0}" == "1" ]]; then
   set -o xtrace
 fi
 
+
+
+
+
+
 export_all() {
   # https://stackoverflow.com/a/30969768
   set -o allexport
@@ -512,13 +517,16 @@ mn() {
 # Extend the completion
 complete -F _man mn
 
+# Hide VS Code code-signing errors
+alias code='code 2> >(grep -vE ".*ERROR.*\(-67062\)$" >&2)'
+
 # Open a new VS Code window, maybe in the current directory
 coden() {
   local dest
   dest=$(if [[ $# -eq 0 ]]; then echo "."; else echo "$@"; fi)
   echo "code -n $dest" >&2
   # Filter out the code-signing error from stderr: https://stackoverflow.com/a/52575087
-  code -n "$dest" 2> >(grep -vE ".*ERROR.*\(-67062\)$" >&2)
+  code -n "$dest"
 }
 
 # Compare a file's MD5 checksum to a known value

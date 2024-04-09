@@ -1,6 +1,8 @@
-date: +%a %b %e %k:%M %Y
+date: +%m/%d/%y %k:%M
 hyperlink: never
 no-symlink: false
 permission: octal
 sorting:
   dir-grouping: first
+icons:
+  when: never
