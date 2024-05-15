@@ -336,8 +336,8 @@ if [[ -n $(type -p lsd) ]]; then
   function l { __redef_ls -l "$@"; }
   function ll { l -a "$@"; }
   function la { l -aa "$@"; }
-  function lr { l -t "$@"; }
-  function lt { lr -r "$@"; }
+  function lr { l -rt "$@"; }
+  function lt { l -t "$@"; }
 elif [[ -n $(type -p exa) ]]; then
   function __redef_ls {
     exa -Fg \

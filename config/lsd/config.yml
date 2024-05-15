@@ -3,6 +3,7 @@ hyperlink: never
 no-symlink: false
 permission: octal
 sorting:
-  dir-grouping: first
+  dir-grouping: none
 icons:
   when: never
+literal: true
