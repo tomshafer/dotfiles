@@ -7,3 +7,10 @@ sorting:
 icons:
   when: never
 literal: true
+blocks:
+  - permission
+  - user
+  - size
+  - date
+  - git
+  - name

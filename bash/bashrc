@@ -5,14 +5,10 @@ if [[ "${TRACE-0}" == "1" ]]; then
   set -o xtrace
 fi
 
-
-
-
-
-
 export_all() {
   # https://stackoverflow.com/a/30969768
   set -o allexport
+  local f
   # shellcheck disable=SC1090
   for f in "$@"; do source "$f"; done
   set +o allexport
@@ -38,6 +34,16 @@ printtime() {
   if [[ -n ${TIME-} ]]; then
     delta=$(echo "$3 - $2" | bc -l)
     echo >&2 "T($1): $delta ms"
+  fi
+}
+
+# https://github.com/sharkdp/bat
+# Use `bat` to show and highlight help pages
+help() {
+  if [[ $(type -t bat) ]]; then
+    "$@" --help 2>&1 | bat --plain --language=help
+  else
+    "$@" --help
   fi
 }
 
@@ -258,7 +264,11 @@ __git_prompt() {
 
 # Add a virtualenv marker if active
 __venv_prompt() {
-  [[ -n ${VIRTUAL_ENV-} ]] && printf ' (%s)' "$(basename "$VIRTUAL_ENV")"
+  if [[ -n ${VIRTUAL_ENV-} ]]; then
+    nm=$(basename "$VIRTUAL_ENV")
+    [[ $nm =~ ^\.?v?env$ ]] && nm="🐍"
+    printf ' (%s)' "$nm"
+  fi
 }
 
 # Add a conda marker if active and not the base env
@@ -333,8 +343,8 @@ if [[ -n $(type -p lsd) ]]; then
     lsd -Fg "$@"
   }
   function ls { __redef_ls "$@"; }
-  function l { __redef_ls -l "$@"; }
-  function ll { l -A "$@"; }
+  function l { __redef_ls -l --no-symlink "$@"; }
+  function ll { __redef_ls -lA "$@"; }
   function la { l -a "$@"; }
   function lr { l -rt "$@"; }
   function lt { l -t "$@"; }
