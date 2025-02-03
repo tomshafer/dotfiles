@@ -47,6 +47,11 @@ help() {
   fi
 }
 
+# Open a PDF with Skim
+skim() {
+  open -a Skim.app "$@"
+}
+
 mkvenv() {
   _usage() {
     echo 2>&1 "Usage: mkvenv [-h] [-a] [-n DIR_NAME] CONDA_ENV"
