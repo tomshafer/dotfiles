@@ -34,7 +34,7 @@ source "$DF/completions.zsh"
 # Use bat for paging [5]
 if command -v bat > /dev/null; then
     export MANPAGER="sh -c 'col -bx | bat -l man -p --pager=\"less -RF\"'"
-else 
+else
     export MANPAGER="less -X"
 fi
 

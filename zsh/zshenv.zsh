@@ -6,15 +6,8 @@ export EDITOR=vim
 export VISUAL="$EDITOR"
 
 
-# Path
-typeset -U path
-
-
 # Homebrew defaults
-if command -v brew > /dev/null; then
-    export HOMEBREW_NO_ENV_HINTS=1
-    PATH="$(brew --prefix)/bin:$(brew --prefix)/sbin:$PATH"
-fi
+export HOMEBREW_NO_ENV_HINTS=1
 
 
 # Avoid issues with `gpg` as installed via Homebrew [1]

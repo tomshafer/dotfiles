@@ -29,6 +29,9 @@ alias ...='cd ../..'
 # Miscellany
 # --------------------------------------------------------------------
 
+# Git
+alias g="git"
+
 # Fix systems where `bat` is called `batcat`
 if ! command -v bat > /dev/null && command -v batcat > /dev/null; then
     alias bat='batcat'
