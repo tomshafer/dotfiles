@@ -1,4 +1,5 @@
-#!/bin/zsh
+#! /usr/bin/env zsh
+#  Common ZSH aliases
 
 
 # Listing
@@ -22,6 +23,7 @@ alias lt="l -t"
 # Navigation
 # --------------------------------------------------------------------
 
+alias -- -='cd -'
 alias ..='cd ..'
 alias ...='cd ../..'
 

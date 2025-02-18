@@ -20,12 +20,7 @@ bindkey "^[[3~" delete-char     # Forward delete with Delete [2]
 # --------------------------------------------------------------------
 source "$DF/functions.zsh"
 source "$DF/aliases.zsh"
-
-# macOS only [4]
-if [[ $(uname) == "Darwin" ]]; then
-    source "$DF/macos.zsh"
-fi
-
+[[ $(uname) == "Darwin" ]] && source "$DF/macos.zsh"  # macOS only [4]
 source "$DF/completions.zsh"
 
 
