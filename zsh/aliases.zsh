@@ -8,7 +8,7 @@
 # Use `lsd` if available, otherwise use builtin `ls`
 if command -v lsd > /dev/null 2>&1; then
     alias ls="lsd -Fg"
-    alias l="ls -l --no-symlink"
+    alias l="ls -l"
 else
     alias ls="command ls -Fh --color=auto"
     alias l="ls -l"

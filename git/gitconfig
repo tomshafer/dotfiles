@@ -1,9 +1,12 @@
-# Adapted from https://github.com/mathiasbynens/dotfiles/
+# Adapted from:
+# https://github.com/mathiasbynens/dotfiles/
+# https://blog.gitbutler.com/how-git-core-devs-configure-git/
 
 [alias]
-
     # View SHA, description, and history graph
     l = log --format=\"%C(green)%h %C(cyan)%ad %C(magenta)%an%C(auto)%d %s\" --date=short --graph --abbrev-commit
+
+    # Short log
     sl = l -n 20
 
     # View the current working tree status using the short format.
@@ -25,19 +28,34 @@
     mr = "!sh -c \"git fetch ${2:-origin} merge-requests/$1/head:mr-${2:-origin}-$1 && git checkout mr-${2:-origin}-$1\""
 
     co = checkout
+
     ci = commit
     cim = commit -m
+
     p = pull
+
     pu = push
+
     au = add -u
 
 [branch]
-
-    # Show most recently changed branches first.
+    # Show most recently changed branches first
     sort = -committerdate
 
-[core]
+[color]
+    # Use colors in Git commands that are capable of colored output when
+    # outputting to the terminal. (This is the default setting in Git ≥ 1.8.4.)
+    ui = auto
 
+[column]
+    # Multiple columns in the output instead of one long list
+    ui = auto
+
+[commit]
+    # Include the diff for context when committing
+    verbose = true
+
+[core]
     # Treat spaces before tabs and all kinds of trailing whitespace as an error.
     # [default] trailing-space: looks for spaces at the end of a line
     # [default] space-before-tab: looks for spaces before tabs at the beginning of a line
@@ -51,48 +69,64 @@
     # https://git-scm.com/docs/git-update-index#_untracked_cache
     untrackedCache = true
 
-[color]
+    # Monitor for changes in repos to update the cache
+    fsmonitor = true
 
-    # Use colors in Git commands that are capable of colored output when
-    # outputting to the terminal. (This is the default setting in Git ≥ 1.8.4.)
-    ui = auto
+    # Globally ignore certain things
+    excludesfile = ~/.config/git/ignore
 
 [diff]
+    # Use a better diffing algorithm
+    algorithm = histogram
 
-    # Detect copies as well as renames.
+    # Distinguish between changes and moves
+    colorMoved = plain
+
+    # Mnemonics for index vs. commit vs. working (not a vs. b)
+    mnemonicPrefix = true
+
+    # Detect copies as well as renames
     renames = copies
 
 [diff "bin"]
-
     # Use `hexdump` to diff binary files.
     textconv = hexdump -v -C
 
-[gpg]
+[fetch]
+    # Fetch everything and remove origin refs that no longer exist
+    prune = true
+    pruneTags = true
+    all = true
 
+[gpg]
     program = gpg
 
 [help]
-
-    # Automatically correct mistyped commands.
+    # Ask to correct mistyped commands
     autocorrect = "prompt"
 
 [init]
-
+    # Use "main" as default branch
     defaultbranch = main
 
 [merge]
-
     # Include summaries of merged commits in newly created merge commit messages
     log = true
 
 [pull]
-
+    # Only full in fast-forwards merges by default
     ff = only
 
 [push]
-
     # https://git-scm.com/docs/git-config#git-config-pushdefault
     default = simple
 
+    # Get rid of the 'no upstream' messages
+    autoSetupRemote = true
+
     # Make `git push` push relevant annotated tags when pushing branches out.
     followtags = true
+
+[tag]
+    # Sort tags as if they are version numbers
+    sort = version:refname
