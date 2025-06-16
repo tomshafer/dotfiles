@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+# shellcheck shell=sh
 # Common environmental configuration.
 
 set -eu
