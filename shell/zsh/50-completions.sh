@@ -11,3 +11,8 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
 # Completion engine startup
 autoload -Uz compinit && compinit -u
+
+# Add ZSH completions to the fpath
+if [[ -d $(brew --prefix)/share/zsh-completions ]]; then
+    fpath+=/opt/homebrew/share/zsh-completions
+fi

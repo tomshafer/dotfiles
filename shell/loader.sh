@@ -2,7 +2,7 @@
 # shellcheck disable=SC1090
 # Load configurations into Bash or Zsh.
 
-set -eu
+# set -eu
 
 DOTFILES=${DOTFILES:-"$HOME/dotfiles"}
 

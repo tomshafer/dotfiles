@@ -1,9 +1,6 @@
 # shellcheck shell=sh
 # Common environmental configuration.
 
-set -eu
-
-
 # Use vim as default editor
 export EDITOR=vim
 export VISUAL="$EDITOR"
@@ -20,6 +17,10 @@ else
 fi
 export MANPAGER
 
+# Disable Homebrew analytics if present
+if command -v brew >/dev/null 2>&1; then
+    export HOMEBREW_NO_ANALYTICS=1
+fi
 
 # References ---------------------------------------------------------
 # [1]: https://stackoverflow.com/a/42265848
