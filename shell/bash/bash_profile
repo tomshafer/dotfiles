@@ -1,21 +1,7 @@
-#!/usr/bin/env bash
+# shellcheck shell=bash
+# shellcheck disable=SC1091
 
-# General options ------------------------------------------
-
-shopt -s cdspell cmdhist histappend
-
-# https://github.com/mathiasbynens/dotfiles/blob/main/.bash_profile
-for option in autocd checkjobs globstar; do
-  shopt -s "$option" 2> /dev/null
-done
-
-# Include .bashrc ------------------------------------------
-
-# shellcheck source=/dev/null
-[ -f ~/.bashrc ] && . ~/.bashrc
-
-# Remove unwanted aliases ----------------------------------
-
-for alias in ls ll l la lt lr xx l2; do
-  [[ $(type -t $alias) == "alias" ]] && unalias "$alias"
-done
+# Source .bashrc if it exists and we're running bash
+if [[ -n "$BASH_VERSION" && -f "$HOME/.bashrc" ]]; then
+    . "$HOME/.bashrc"
+fi
