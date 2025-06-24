@@ -43,3 +43,57 @@ set convert-meta off
 
 # Use Alt/Meta + Delete to delete the preceding word
 "\e[3;3~": kill-word
+
+
+# From Claude:
+# # Enable case-insensitive completion
+# set completion-ignore-case on
+#
+# # Treat hyphens and underscores as equivalent for completion
+# set completion-map-case on
+#
+# # Show completion matches immediately without bell
+# set show-all-if-ambiguous on
+# set show-all-if-unmodified on
+#
+# # Disable the bell entirely
+# set bell-style none
+#
+# # Use Vi mode if you prefer, or keep emacs (default)
+# # set editing-mode vi
+#
+# # macOS-style word movement (Option+arrow keys)
+# "\e[1;9C": forward-word      # Option+Right
+# "\e[1;9D": backward-word     # Option+Left
+#
+# # Alternative bindings that work in more terminals
+# "\e\e[C": forward-word       # Option+Right (alternative)
+# "\e\e[D": backward-word      # Option+Left (alternative)
+#
+# # Home/End keys (Cmd+Left/Right on Mac)
+# "\e[H": beginning-of-line    # Home
+# "\e[F": end-of-line          # End
+#
+# # Delete word backward (Option+Backspace)
+# "\e\x7f": backward-kill-word
+#
+# # Delete word forward (Option+Delete)
+# "\e[3;3~": kill-word
+#
+# # Up/Down arrow for history search (like Terminal.app)
+# "\e[A": history-search-backward
+# "\e[B": history-search-forward
+#
+# # Enable incremental search with Ctrl+R (usually default)
+# "\C-r": reverse-search-history
+#
+# # Quick directory navigation
+# "\C-l": clear-screen         # Ctrl+L to clear
+#
+# # Tab completion enhancements
+# set colored-completion-prefix on
+# set colored-stats on
+# set mark-symlinked-directories on
+# set visible-stats on
+#
+# set bell-style none
