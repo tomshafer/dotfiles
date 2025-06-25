@@ -17,19 +17,18 @@ setopt NO_CASE_GLOB
 bindkey -e
 
 # macOS-like customizations
-# TODO: Test and fix
-# bindkey "^A" beginning-of-line       # Ctrl+A
-# bindkey "^E" end-of-line             # Ctrl+E
-# bindkey "^[[1;3C" forward-word       # Option+Right
-# bindkey "^[[1;3D" backward-word      # Option+Left
-# bindkey "^[[1;9C" end-of-line        # Cmd+Right
-# bindkey "^[[1;9D" beginning-of-line  # Cmd+Left
-# bindkey "^[[3~" delete-char          # Delete
-# bindkey "^H" backward-delete-char    # Backspace
-# bindkey "^[[3;3~" backward-kill-word # Option+Backspace
-# bindkey "^[[3;9~" kill-word          # Option+Delete
-# bindkey "^U" backward-kill-line      # Cmd+Backspace
-# bindkey "^K" kill-line               # Cmd+Delete
+bindkey "^A" beginning-of-line       # Ctrl+A
+bindkey "^E" end-of-line             # Ctrl+E
+bindkey "^[[1;3D" backward-word      # Option+Left
+bindkey "^[[1;3C" forward-word       # Option+Right
+bindkey "^[[1;9D" beginning-of-line  # Cmd+Left
+bindkey "^[[1;9C" end-of-line        # Cmd+Right
+bindkey "^[[3~" delete-char          # Delete
+bindkey "^H" backward-delete-char    # Backspace
+bindkey "^[[3;3~" backward-kill-word # Option+Backspace
+bindkey "^[[3;9~" kill-word          # Option+Delete
+bindkey "^U" backward-kill-line      # Cmd+Backspace
+bindkey "^K" kill-line               # Cmd+Delete
 
 # Search history
 bindkey "^R" history-incremental-search-backward
@@ -41,18 +40,6 @@ zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 bindkey "^[[A" up-line-or-beginning-search    # Up arrow
 bindkey "^[[B" down-line-or-beginning-search  # Down arrow
-
-# Link commons -------------------------------------------------------
-
-SCRIPT_DIR="$(cd "$(dirname "${(%):-%N}")" && pwd)"
-DOTFILES_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
-
-[[ -f "$DOTFILES_DIR/shell/common/path.sh" ]] && . "$DOTFILES_DIR/shell/common/path.sh"
-[[ -f "$DOTFILES_DIR/shell/common/exports.sh" ]] && . "$DOTFILES_DIR/shell/common/exports.sh"
-[[ -f "$DOTFILES_DIR/shell/common/aliases.sh" ]] && . "$DOTFILES_DIR/shell/common/aliases.sh"
-[[ -f "$DOTFILES_DIR/shell/common/functions.sh" ]] && . "$DOTFILES_DIR/shell/common/functions.sh"
-
-unset SCRIPT_DIR DOTFILES_DIR
 
 
 # History configuration ----------------------------------------------
@@ -80,6 +67,9 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 # Colored completion
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
+# Completion menu
+zstyle ':completion:*' menu select
+
 # Homebrew completions
 if command -v brew >/dev/null; then
     if [[ -d $(brew --prefix)/share/zsh-completions ]]; then
@@ -87,6 +77,74 @@ if command -v brew >/dev/null; then
     fi
 fi
 
-# Load the completion system after setup
-autoload -Uz compinit
-compinit
+# Load the completion system
+autoload -Uz compinit && compinit
+
+# Use bash completions, too
+autoload -Uz bashcompinit && bashcompinit
+
+
+# Plugins ---------------------------------------------------------
+
+# Homebrew
+if command -v brew >/dev/null 2>&1; then
+    eval "$(brew shellenv)"        # Set up paths and exports
+    export HOMEBREW_NO_ANALYTICS=1 # Disable telemetry
+fi
+
+# fzf
+[[ command -v fzf >/dev/null ]] && source <(fzf --zsh)
+
+# uv
+[[ command -v uv >/dev/null ]] && eval "$(uv generate-shell-completion zsh)"
+[[ command -v uvx >/dev/null ]] && eval "$(uvx --generate-shell-completion zsh)"
+
+# nvm
+if [[ -d "$HOME/.nvm" ]]; then
+    export NVM_DIR="$HOME/.nvm"
+    [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    [[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+fi
+
+
+# # # Fix completions for `uv run`
+# # # https://github.com/astral-sh/uv/issues/8432#issuecomment-2867318195
+# # _uv_run_mod() {
+# #     if [[ "$words[2]" == "run" && "$words[CURRENT]" != -* ]]; then
+# #         _arguments '*:filename:_files'
+# #     else
+# #         _uv "$@"
+# #     fi
+# # }
+# # compdef _uv_run_mod uv
+
+# # # Added by LM Studio CLI (lms)
+# # export PATH="$PATH:/Users/tomshafer/.lmstudio/bin"
+
+
+# Link commons -------------------------------------------------------
+
+SCRIPT_DIR="$(cd "$(dirname "${(%):-%N}")" && pwd)"
+DOTFILES_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
+[[ -f "$DOTFILES_DIR/shell/common/path.sh" ]] && . "$DOTFILES_DIR/shell/common/path.sh"
+[[ -f "$DOTFILES_DIR/shell/common/exports.sh" ]] && . "$DOTFILES_DIR/shell/common/exports.sh"
+[[ -f "$DOTFILES_DIR/shell/common/aliases.sh" ]] && . "$DOTFILES_DIR/shell/common/aliases.sh"
+[[ -f "$DOTFILES_DIR/shell/common/functions.sh" ]] && . "$DOTFILES_DIR/shell/common/functions.sh"
+
+unset SCRIPT_DIR DOTFILES_DIR
+
+
+# # # Additional plugins
+# # eval "$(zoxide init --cmd cd zsh)"  # zoxide
+# # 
+
+# # # Path
+# # export PATH="/Users/tomshafer/.local/bin:$PATH"
+
+# # fpath+=~/.zfunc; autoload -Uz compinit; compinit
+
+# # 
+
+
+# # # End of LM Studio CLI section
