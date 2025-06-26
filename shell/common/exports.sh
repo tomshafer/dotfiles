@@ -1,5 +1,12 @@
 # shellcheck shell=bash
 
+# Confirm common XDG format --------------------------------
+
+# XDG Base Directory Specification
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+
 # Homebrew -------------------------------------------------
 
 # This has to be right at the top to find utilities
@@ -18,6 +25,7 @@ export LANG=en_US.UTF-8    # Locale & language
 # Use vim as default editor
 if command -v vim >/dev/null 2>&1; then
     export EDITOR=vim
+    export VISUAL="$EDITOR"
 fi
 
 # Pagers -------------------------------------------------------------
