@@ -58,7 +58,14 @@ _ssh_hosts() {
         }' ~/.ssh/config)
     fi
     
-    mapfile -t COMPREPLY < <(compgen -W "$hosts" -- "${COMP_WORDS[COMP_CWORD]}")
+    COMPREPLY=()
+    local completions
+    completions=$(compgen -W "$hosts" -- "${COMP_WORDS[COMP_CWORD]}")
+    
+    local IFS=$'\n'
+    for completion in $completions; do
+        COMPREPLY+=("$completion")
+    done
 }
 complete -F _ssh_hosts ssh scp sftp
 
