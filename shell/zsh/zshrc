@@ -38,9 +38,13 @@ if command -v brew >/dev/null; then
     fi
 fi
 
-# Local completions from, e.g., Typer
+# Local completions from, e.g., Homebrew and Typer
 if [[ -d $HOME/.zfunc ]]; then
-    fpath+="$HOME/.zfunc"
+    fpath=(~/.zfunc $fpath)
+fi
+
+if [[ -d /opt/homebrew/share/zsh/site-functions ]]; then
+    fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
 fi
 
 autoload -Uz compinit && compinit  # Completion
@@ -111,7 +115,7 @@ precmd() {
 }
 
 # LHS prompt is CWD and prompt symbol
-PROMPT=$'%{$fg[blue]%}%~%{$reset_color%} %(!.#.$) '
+PROMPT=$'${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}%{$fg[blue]%}%~%{$reset_color%} %(!.#.$) '
 
 # RHS prompt shows VCS info
 RPROMPT='$vcs_info_msg_0_'

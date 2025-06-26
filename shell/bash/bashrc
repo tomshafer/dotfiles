@@ -51,17 +51,17 @@ fi
 _ssh_hosts() {
     local hosts=""
     if [[ -f ~/.ssh/config ]]; then
-        hosts=$(awk '/^[[:space:]]*Host[[:space:]]/ { 
-            for(i=2; i<=NF; i++) 
-                if($i !~ /[*?!]/ && $i != "") 
-                    print $i 
+        hosts=$(awk '/^[[:space:]]*Host[[:space:]]/ {
+            for(i=2; i<=NF; i++)
+                if($i !~ /[*?!]/ && $i != "")
+                    print $i
         }' ~/.ssh/config)
     fi
-    
+
     COMPREPLY=()
     local completions
     completions=$(compgen -W "$hosts" -- "${COMP_WORDS[COMP_CWORD]}")
-    
+
     local IFS=$'\n'
     for completion in $completions; do
         COMPREPLY+=("$completion")
@@ -145,7 +145,7 @@ export PROMPT_COMMAND="history -a; history -n"
 blue=$(tput setaf 4)
 reset=$(tput sgr0)
 
-PS1="\[$blue\]\w\[$reset\] \$ "
+PS1="${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}\[$blue\]\w\[$reset\] \$ "
 export PS1
 
 unset blue reset

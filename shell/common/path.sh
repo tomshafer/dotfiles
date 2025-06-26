@@ -19,6 +19,9 @@ add_to_path() {
 add_to_path "/opt/homebrew/bin"
 add_to_path "/usr/local/bin"
 
+# npm
+add_to_path "$HOME/.npm-packages/bin"
+
 # User binaries
 add_to_path "$HOME/.local/bin"
 add_to_path "$HOME/bin"
