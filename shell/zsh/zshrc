@@ -1,15 +1,54 @@
 # shellcheck shell=bash
 
-# Zsh options --------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DOTFILES_DIR="$(readlink -f "$SCRIPT_DIR/../../")"
+unset SCRIPT_DIR
 
-setopt ALWAYS_TO_END          # Move cursor to end after completion
-setopt APPEND_HISTORY         # Append rather than overwrite history file
+# Zsh options ----------------------------------------------
+
+setopt ALWAYS_TO_END           # Move cursor to end after completion
+setopt APPEND_HISTORY          # Append rather than overwrite history file
 setopt AUTO_CD
-setopt COMPLETE_IN_WORD       # Allow completion in middle of words
-setopt CORRECT                # Command correction suggestions
+setopt COMPLETE_IN_WORD        # Allow completion in middle of words
+setopt CORRECT                 # Command correction suggestions
 setopt NO_BEEP
 setopt NO_CASE_GLOB
+setopt PROMPT_SUBST            # Expand PROMPT and RPROMPT
 
+autoload -Uz colors && colors  # Enable ZSH color names
+autoload -Uz vcs_info          # Enable ZSH VCS info
+
+# Common setup ---------------------------------------------
+
+source "$DOTFILES_DIR/shell/common/path.sh"
+source "$DOTFILES_DIR/shell/common/exports.sh"
+source "$DOTFILES_DIR/shell/common/aliases.sh"
+source "$DOTFILES_DIR/shell/common/functions.sh"
+
+# Completion ---------------------------------------------------------
+
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'  # No case
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colors
+zstyle ':completion:*' menu select                      # Menu
+
+# Homebrew completions
+if command -v brew >/dev/null; then
+    if [[ -d $(brew --prefix)/share/zsh-completions ]]; then
+        fpath+=/opt/homebrew/share/zsh-completions
+    fi
+fi
+
+# Local completions from, e.g., Typer
+if [[ -d $HOME/.zfunc ]]; then
+    fpath+="$HOME/.zfunc"
+fi
+
+autoload -Uz compinit && compinit  # Completion
+autoload -Uz bashcompinit && bashcompinit  # Incorporate Bash, too
+
+# Common tools ---------------------------------------------
+
+source "$DOTFILES_DIR/shell/common/tools.sh"
 
 # Keybindings --------------------------------------------------------
 
@@ -41,7 +80,6 @@ zle -N down-line-or-beginning-search
 bindkey "^[[A" up-line-or-beginning-search    # Up arrow
 bindkey "^[[B" down-line-or-beginning-search  # Down arrow
 
-
 # History configuration ----------------------------------------------
 
 setopt EXTENDED_HISTORY         # Save timestamp and duration
@@ -58,93 +96,22 @@ HISTFILE="$HOME/.zsh_history"
 HISTSIZE=100000  # 100,000 commands in memory
 SAVEHIST=500000  # 500,000 commands on disk
 
+# Prompt ---------------------------------------------------
 
-# Completion ---------------------------------------------------------
+# Configure VCS display
+zstyle ':vcs_info:*' enable                 # Enable for everything
+zstyle ':vcs_info:*' check-for-changes true # Allow checking for repo changes
+zstyle ':vcs_info:*' stagedstr "+"          # Plus sign if any staged changes
+zstyle ':vcs_info:*' unstagedstr "*"        # Asterisk if any unstaged changes
+zstyle ':vcs_info:*' formats "%{$fg[magenta]%}%b%u%c%{$reset_color%}"
 
-# Case insensitive completion
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+# precmd() runs actions before the prompt, collecting VCS details
+precmd() {
+    vcs_info
+}
 
-# Colored completion
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+# LHS prompt is CWD and prompt symbol
+PROMPT=$'%{$fg[blue]%}%~%{$reset_color%} %(!.#.$) '
 
-# Completion menu
-zstyle ':completion:*' menu select
-
-# Homebrew completions
-if command -v brew >/dev/null; then
-    if [[ -d $(brew --prefix)/share/zsh-completions ]]; then
-        fpath+=/opt/homebrew/share/zsh-completions
-    fi
-fi
-
-# Load the completion system
-autoload -Uz compinit && compinit
-
-# Use bash completions, too
-autoload -Uz bashcompinit && bashcompinit
-
-
-# Plugins ---------------------------------------------------------
-
-# Homebrew
-if command -v brew >/dev/null 2>&1; then
-    eval "$(brew shellenv)"        # Set up paths and exports
-    export HOMEBREW_NO_ANALYTICS=1 # Disable telemetry
-fi
-
-# fzf
-[[ command -v fzf >/dev/null ]] && source <(fzf --zsh)
-
-# uv
-[[ command -v uv >/dev/null ]] && eval "$(uv generate-shell-completion zsh)"
-[[ command -v uvx >/dev/null ]] && eval "$(uvx --generate-shell-completion zsh)"
-
-# nvm
-if [[ -d "$HOME/.nvm" ]]; then
-    export NVM_DIR="$HOME/.nvm"
-    [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-    [[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-fi
-
-
-# # # Fix completions for `uv run`
-# # # https://github.com/astral-sh/uv/issues/8432#issuecomment-2867318195
-# # _uv_run_mod() {
-# #     if [[ "$words[2]" == "run" && "$words[CURRENT]" != -* ]]; then
-# #         _arguments '*:filename:_files'
-# #     else
-# #         _uv "$@"
-# #     fi
-# # }
-# # compdef _uv_run_mod uv
-
-# # # Added by LM Studio CLI (lms)
-# # export PATH="$PATH:/Users/tomshafer/.lmstudio/bin"
-
-
-# Link commons -------------------------------------------------------
-
-SCRIPT_DIR="$(cd "$(dirname "${(%):-%N}")" && pwd)"
-DOTFILES_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
-
-[[ -f "$DOTFILES_DIR/shell/common/path.sh" ]] && . "$DOTFILES_DIR/shell/common/path.sh"
-[[ -f "$DOTFILES_DIR/shell/common/exports.sh" ]] && . "$DOTFILES_DIR/shell/common/exports.sh"
-[[ -f "$DOTFILES_DIR/shell/common/aliases.sh" ]] && . "$DOTFILES_DIR/shell/common/aliases.sh"
-[[ -f "$DOTFILES_DIR/shell/common/functions.sh" ]] && . "$DOTFILES_DIR/shell/common/functions.sh"
-
-unset SCRIPT_DIR DOTFILES_DIR
-
-
-# # # Additional plugins
-# # eval "$(zoxide init --cmd cd zsh)"  # zoxide
-# # 
-
-# # # Path
-# # export PATH="/Users/tomshafer/.local/bin:$PATH"
-
-# # fpath+=~/.zfunc; autoload -Uz compinit; compinit
-
-# # 
-
-
-# # # End of LM Studio CLI section
+# RHS prompt shows VCS info
+RPROMPT='$vcs_info_msg_0_'

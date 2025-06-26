@@ -1,5 +1,4 @@
 # shellcheck shell=bash
-# Set up our PATH
 
 ######################################################################
 # Add PATH entries, skipping duplicates.
@@ -16,7 +15,7 @@ add_to_path() {
     fi
 }
 
-# Binaries and Homebrew
+# Homebrew and binaries
 add_to_path "/opt/homebrew/bin"
 add_to_path "/usr/local/bin"
 

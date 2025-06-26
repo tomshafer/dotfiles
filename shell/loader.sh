@@ -10,9 +10,10 @@ DOTFILES=${DOTFILES:-"$HOME/dotfiles"}
 for f in "$DOTFILES"/shell/common/*.sh; do
     [ -r "$f" ] && . "$f"
 done
+unset f
 
 # 2. Load shell-specific add-ons
 case "$(ps -p $$ -o comm=)" in
-    *zsh)  for f in "$DOTFILES"/shell/zsh/*.zsh; do [ -r "$f" ] && . "$f"; done ;;
+    *zsh)  for f in "$DOTFILES"/shell/zsh/*.sh; do [ -r "$f" ] && . "$f"; done ;;
     *bash) for f in "$DOTFILES"/shell/bash/*.sh; do [ -r "$f" ] && . "$f"; done ;;
 esac
