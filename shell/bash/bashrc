@@ -48,9 +48,19 @@ if command -v brew >/dev/null; then
 fi
 
 # SSH hostname completion from known_hosts and config
-if [[ -f ~/.ssh/config ]]; then
-    complete -W "$(grep -h '^Host ' ~/.ssh/config | awk '{for(i=2;i<=NF;i++) print $i}' | grep -v '*')" ssh scp sftp
-fi
+_ssh_hosts() {
+    local hosts=""
+    if [[ -f ~/.ssh/config ]]; then
+        hosts=$(awk '/^[[:space:]]*Host[[:space:]]/ { 
+            for(i=2; i<=NF; i++) 
+                if($i !~ /[*?!]/ && $i != "") 
+                    print $i 
+        }' ~/.ssh/config)
+    fi
+    
+    mapfile -t COMPREPLY < <(compgen -W "$hosts" -- "${COMP_WORDS[COMP_CWORD]}")
+}
+complete -F _ssh_hosts ssh scp sftp
 
 # Git completion
 if ! declare -F _git >/dev/null 2>&1; then
