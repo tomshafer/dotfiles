@@ -34,17 +34,16 @@ zstyle ':completion:*' menu select                      # Menu
 # Homebrew completions
 if command -v brew >/dev/null; then
     if [[ -d $(brew --prefix)/share/zsh-completions ]]; then
-        fpath+=/opt/homebrew/share/zsh-completions
+        fpath+="$(brew --prefix)/share/zsh-completions"
+    fi
+    if [[ -d $(brew --prefix)/share/zsh/site-functions ]]; then
+        fpath+="$(brew --prefix)/share/zsh/site-functions"
     fi
 fi
 
-# Local completions from, e.g., Homebrew and Typer
+# Local completions from, e.g., Typer
 if [[ -d $HOME/.zfunc ]]; then
     fpath=(~/.zfunc $fpath)
-fi
-
-if [[ -d /opt/homebrew/share/zsh/site-functions ]]; then
-    fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
 fi
 
 autoload -Uz compinit && compinit  # Completion
@@ -109,13 +108,6 @@ zstyle ':vcs_info:*' stagedstr "+"          # Plus sign if any staged changes
 zstyle ':vcs_info:*' unstagedstr "*"        # Asterisk if any unstaged changes
 zstyle ':vcs_info:*' formats "%{$fg[magenta]%}%b%u%c%{$reset_color%}"
 
-# precmd() runs actions before the prompt, collecting VCS details
-precmd() {
-    vcs_info
-}
-
-# LHS prompt is CWD and prompt symbol
+precmd() { vcs_info }
 PROMPT=$'${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}%{$fg[blue]%}%~%{$reset_color%} %(!.#.$) '
-
-# RHS prompt shows VCS info
 RPROMPT='$vcs_info_msg_0_'
