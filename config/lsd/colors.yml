@@ -1,0 +1,13 @@
+date:
+  hour-old: 10
+  day-old: 2
+  older: 7
+permission:
+  octal: 12
+user: 2
+group: 10
+size:
+  none: 0
+  small: 11
+  medium: 1
+  large: 9

@@ -15,12 +15,12 @@ if command -v brew >/dev/null 2>&1; then
     export HOMEBREW_NO_ANALYTICS=1 # Disable telemetry
 fi
 
-# System defaults ----------------------------------------------------
+# System defaults ------------------------------------------
 
 export TZ=America/New_York # The one true time zone
 export LANG=en_US.UTF-8    # Locale & language
 
-# Editors ------------------------------------------------------------
+# Editors --------------------------------------------------
 
 # Use vim as default editor
 if command -v vim >/dev/null 2>&1; then
@@ -28,7 +28,7 @@ if command -v vim >/dev/null 2>&1; then
     export VISUAL="$EDITOR"
 fi
 
-# Pagers -------------------------------------------------------------
+# Pagers ---------------------------------------------------
 
 # TODO: Add termcap colors if we don't have bat
 
@@ -41,3 +41,8 @@ export MANPAGER="less"
 if command -v bat >/dev/null 2>&1; then
     export MANPAGER="sh -c 'col -bx | bat -l man -p --pager=\"less\"'"
 fi
+
+# Colors ---------------------------------------------------
+
+# Consistent defaults
+export LSCOLORS="exfxcxdxbxegedabagacadah"

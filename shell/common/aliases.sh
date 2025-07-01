@@ -11,17 +11,18 @@ unset alias
 
 # Listing ------------------------------------------------------------
 
-# Use lsd if available, otherwise use builtin ls
-if command -v lsd >/dev/null 2>&1; then
-    alias ls="lsd -Fg"
-else
-    alias ls="command ls -Fh --color=auto"
-fi
-
 alias l="ls -l"
 alias ll="l -A"
 alias la="l -a"
 alias lr="l -rt"
+
+# Prefer lsd, then ls
+if command -v lsd >/dev/null 2>&1; then
+    alias ls="lsd --classify"
+else
+    alias ls="command ls -Fh --color=auto"
+fi
+
 
 # Navigation ---------------------------------------------------------
 

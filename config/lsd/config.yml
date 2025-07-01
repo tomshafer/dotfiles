@@ -1,5 +1,15 @@
+blocks:
+  - permission
+  - user
+  - group
+  - size
+  - date
+  - name
+color:
+  theme: custom
 date: +%m/%d/%y %k:%M
 hyperlink: never
+size: default
 no-symlink: false
 permission: octal
 sorting:
@@ -7,10 +17,3 @@ sorting:
 icons:
   when: never
 literal: true
-blocks:
-  - permission
-  - user
-  - size
-  - date
-  - git
-  - name
