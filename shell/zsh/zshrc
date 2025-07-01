@@ -72,10 +72,6 @@ bindkey "^[[3;9~" kill-word          # Option+Delete
 bindkey "^U" backward-kill-line      # Cmd+Backspace
 bindkey "^K" kill-line               # Cmd+Delete
 
-# Search history
-bindkey "^R" history-incremental-search-backward
-bindkey "^S" history-incremental-search-forward
-
 # Arrow key history (with prefix matching)
 autoload -U up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
