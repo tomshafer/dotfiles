@@ -122,7 +122,6 @@ USAGE:
 OPTIONS:
     --help, -h      Show this help message
     --dry-run, -n   Show what would be done without making changes
-    --version, -v   Show version information
 
 DESCRIPTION:
     Installs dotfiles by creating symlinks for configuration files and 
@@ -159,10 +158,6 @@ parse_arguments() {
                 DRY_RUN=true
                 print_status "DRY RUN MODE: No changes will be made"
                 shift
-                ;;
-            --version|-v)
-                echo "Dotfiles installer v1.0"
-                exit 0
                 ;;
             *)
                 print_error "Unknown option: $1"
