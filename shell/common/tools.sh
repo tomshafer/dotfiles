@@ -41,7 +41,10 @@ fi
 # fzf ------------------------------------------------------
 
 if command -v fzf >/dev/null; then
-    source <(fzf --${DOTFILES_SHELL})
+    if script="$(fzf --bash 2>/dev/null)"; then
+        source <(printf '%s\n' "$script")
+    fi
+    unset script
 fi
 
 # https://mike.place/2017/fzf-fd/
