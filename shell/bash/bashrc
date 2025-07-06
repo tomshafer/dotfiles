@@ -82,39 +82,6 @@ if ! declare -F _git >/dev/null 2>&1; then
 fi
 unset git_completion
 
-# Docker completion
-if command -v docker >/dev/null 2>&1; then
-    for docker_completion in \
-        "/opt/homebrew/etc/bash_completion.d/docker" \
-        "/usr/share/bash-completion/completions/docker" \
-        "/etc/bash_completion.d/docker"; do
-        if [[ -f "$docker_completion" ]]; then
-            source "$docker_completion"
-            break
-        fi
-    done
-fi
-unset docker_completion
-
-# AWS CLI completion
-if command -v aws >/dev/null 2>&1; then
-    complete -C aws_completer aws
-fi
-
-# Additional completion directories
-for completion_dir in \
-    "/opt/homebrew/etc/bash_completion.d" \
-    "/usr/local/etc/bash_completion.d" \
-    "/usr/share/bash-completion/completions" \
-    "/etc/bash_completion.d"; do
-    if [[ -d "$completion_dir" ]]; then
-        for completion_file in "$completion_dir"/*; do
-            [[ -r "$completion_file" ]] && source "$completion_file"
-        done
-    fi
-done
-unset completion_dir
-
 # Common tools ---------------------------------------------
 
 source "$DOTFILES_DIR/shell/common/tools.sh"
