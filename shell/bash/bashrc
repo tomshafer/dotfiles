@@ -36,12 +36,11 @@ source "$DOTFILES_DIR/shell/common/functions.sh"
 complete -d cd pushd rmdir
 
 # Homebrew completions
-if [[ -r $(brew --prefix)/etc/profile.d/bash_completion.sh ]]; then
-    source "$HOMEBREW_PREFIX/etc/profile.d/bash_completion.sh"
-fi
-
-# The `brew` command itself
 if command -v brew >/dev/null; then
+    if [[ -r $(brew --prefix)/etc/profile.d/bash_completion.sh ]]; then
+        source "$HOMEBREW_PREFIX/etc/profile.d/bash_completion.sh"
+    fi
+    
     if [[ -f $(brew --prefix)/etc/bash_completion.d/brew ]]; then
         source "$(brew --prefix)/etc/bash_completion.d/brew"
     fi
