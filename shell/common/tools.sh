@@ -41,7 +41,7 @@ fi
 # fzf ------------------------------------------------------
 
 if command -v fzf >/dev/null; then
-    if script="$(fzf --bash 2>/dev/null)"; then
+    if script="$(fzf --$DOTFILES_SHELL 2>/dev/null)"; then
         source <(printf '%s\n' "$script")
     fi
     unset script
