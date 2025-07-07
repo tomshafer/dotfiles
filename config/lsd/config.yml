@@ -17,3 +17,6 @@ sorting:
 icons:
   when: never
 literal: true
+truncate-owner:
+  after: 10
+  marker: …
