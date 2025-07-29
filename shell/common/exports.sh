@@ -22,8 +22,11 @@ export LANG=en_US.UTF-8    # Locale & language
 
 # Editors --------------------------------------------------
 
-# Use vim as default editor
-if command -v vim >/dev/null 2>&1; then
+# Use (n)vim as default editor
+if command -v nvim >/dev/null 2>&1; then
+    export EDITOR=nvim
+    export VISUAL=nvim
+elif command -v vim >/dev/null 2>&1; then
     export EDITOR=vim
     export VISUAL="$EDITOR"
 fi
