@@ -106,6 +106,7 @@ rtp:prepend(lazypath)
 require("lazy").setup({
     -- General plugins
     { "NMAC427/guess-indent.nvim", opts = {} }, -- Detect tabstop and shiftwidth automatically
+    { "tpope/vim-fugitive" }, -- Git configuration
     require "trs.plugin.gitsigns", -- Add git markers in the margin
     require "trs.plugin.which-key", -- Show key command hints
     require "trs.plugin.telescope", -- Fuzzy finder
