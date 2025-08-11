@@ -30,6 +30,8 @@ source "$DOTFILES_DIR/shell/common/functions.sh"
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'  # No case
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colors
 zstyle ':completion:*' menu select                      # Menu
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path $HOME/.zsh/cache
 
 # Homebrew completions
 if command -v brew >/dev/null; then
@@ -48,6 +50,23 @@ fi
 
 autoload -Uz compinit && compinit  # Completion
 autoload -Uz bashcompinit && bashcompinit  # Incorporate Bash, too
+
+# Optimization: Don't rebuild the completion dump every time we start
+typeset -g ZSH_COMPDUMP="${ZDOTDIR:-$HOME}/.zcompdump-$HOST-$ZSH_VERSION"
+
+today_=$(date +'%j')
+cache_=$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)
+if [[ -s $ZSH_COMPDUMP && $today_ == $cache_ ]]; then
+  compinit -d "$ZSH_COMPDUMP"
+else
+  compinit -C -d "$ZSH_COMPDUMP"
+fi
+
+# Compile the dump for faster reads
+if [[ -s $ZSH_COMPDUMP && ( ! -s $ZSH_COMPDUMP.zwc || $ZSH_COMPDUMP -nt $ZSH_COMPDUMP.zwc ) ]]; then
+  zcompile -R -- "$ZSH_COMPDUMP" "$ZSH_COMPDUMP.zwc"
+fi
+
 
 # Common tools ---------------------------------------------
 
