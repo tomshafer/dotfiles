@@ -1,2 +1,3 @@
---theme="ansi"
+--theme-dark=tokyo-night
+--theme-light=tokyo-night-light
 --style="changes,numbers,rule,snip"
