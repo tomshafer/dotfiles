@@ -64,9 +64,24 @@ fi
 
 if [[ -d "$HOME/.nvm" ]]; then
     export NVM_DIR="$HOME/.nvm"
+    export NVM_AUTO_USE=0
 
-    [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
     [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+
+    __nvm_lazy_load() {
+        # Source nvm only once
+        unset -f node npm npx corepack yarn pnpm nvm __nvm_lazy_load
+        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    }
+
+    # Stubs that load nvm only when needed
+    node()     { __nvm_lazy_load; node     "$@"; }
+    npm()      { __nvm_lazy_load; npm      "$@"; }
+    npx()      { __nvm_lazy_load; npx      "$@"; }
+    corepack() { __nvm_lazy_load; corepack "$@"; }
+    yarn()     { __nvm_lazy_load; yarn     "$@"; }
+    pnpm()     { __nvm_lazy_load; pnpm     "$@"; }
+    nvm()      { __nvm_lazy_load; nvm      "$@"; }
 fi
 
 # LM Studio ------------------------------------------------
