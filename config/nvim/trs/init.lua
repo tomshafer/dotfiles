@@ -5,3 +5,6 @@ require "trs.options"
 require "trs.keymaps"
 require "trs.autocommands"
 require "trs.lazy"
+
+-- Set the colorscheme
+vim.cmd.colorscheme "tokyonight"

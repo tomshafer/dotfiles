@@ -63,5 +63,7 @@ vim.keymap.set("n", "<leader>P", [["+P]])
 -- Delete to the black hole register
 vim.keymap.set({ "n", "v" }, "<leader>d", '"_d')
 
--- Close the current buffer
-vim.keymap.set("n", "<leader>w", vim.cmd.bdelete)
+-- Work with buffers
+vim.keymap.set("n", "<leader>bp", vim.cmd.bprev, { desc = "Go to the previous buffer" })
+vim.keymap.set("n", "<leader>bn", vim.cmd.bnext, { desc = "Go to the next buffer" })
+vim.keymap.set("n", "<leader>bc", vim.cmd.bdelete, { desc = "Close the buffer" })

@@ -110,8 +110,10 @@ require("lazy").setup({
     require "trs.plugin.gitsigns", -- Add git markers in the margin
     require "trs.plugin.which-key", -- Show key command hints
     require "trs.plugin.telescope", -- Fuzzy finder
+    require "trs.plugin.harpoon", -- Harpoon
     require "trs.plugin.todo-comments", -- TODO comment highlighting
     require "trs.plugin.tokyo-night-theme", -- Color scheme (TODO: light vs. dark)
+    require "trs.plugin.github-theme", -- Color scheme
 
     -- LSP configuration
     require "trs.plugin.lspconfig",
