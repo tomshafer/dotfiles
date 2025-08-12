@@ -57,7 +57,7 @@ fi
 # zoxide ---------------------------------------------------
 
 if command -v zoxide >/dev/null; then
-    eval "$(zoxide init --cmd cd $DOTFILES_SHELL)"
+    eval "$(zoxide init --cmd z $DOTFILES_SHELL)"
 fi
 
 # nvm ------------------------------------------------------
