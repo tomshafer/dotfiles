@@ -313,6 +313,8 @@ return {
                             },
                         },
                     },
+
+                    bashls = {},
                 },
 
                 -- This table contains config for all language servers that are *not* installed via Mason.
@@ -336,8 +338,10 @@ return {
             local ensure_installed = vim.tbl_keys(servers.mason or {})
             vim.list_extend(ensure_installed, {
                 "stylua", -- Format Lua code
+                "shfmt", --Format shell code
                 "ruff", -- Python linting and formatting
                 "basedpyright", -- Python LSP and type checking
+                "bash-language-server", -- Bash LSP
             })
 
             require("mason-tool-installer").setup {

@@ -1,15 +1,256 @@
+" Vim config mirroring Neovim basics: options, keymaps, plugins
+" Target: Vim 8+ on remote machines
+
 set nocompatible
+
+" -----------------------------------------------------------------------------
+" Core options (parity with your Neovim config)
+" -----------------------------------------------------------------------------
 set number
-set ruler
-set shiftwidth=4
-set tabstop=4
-set softtabstop=4
-set expandtab
-set shiftround
+set relativenumber
+set mouse=a
+set noshowmode
+set ignorecase
+set smartcase
+set updatetime=250
+set timeout
+set timeoutlen=300
+set splitright
+set splitbelow
+set list
+set listchars=tab:»\ ,trail:·,nbsp:␣
+set cursorline
+set scrolloff=10
+set confirm
+set nowrap
+set undofile
 
-" filetype support
+" Store persistent undo files in a dedicated directory
+if has('persistent_undo')
+  silent! call mkdir(expand('~/.vim/undo'), 'p')
+  set undodir=~/.vim/undo//
+endif
+
+" Store swap and backup files in dedicated directories
+silent! call mkdir(expand('~/.vim/swap'), 'p')
+silent! call mkdir(expand('~/.vim/backup'), 'p')
+set directory=~/.vim/swap//
+set backupdir=~/.vim/backup//
+
+" Clipboard: prefer system clipboard if available
+if has('clipboard')
+  set clipboard=unnamedplus
+endif
+
+" Truecolor when available; fallback to 256 colors
+if has('termguicolors')
+  set termguicolors
+else
+  set t_Co=256
+endif
+
+" Filetype/syntax
 filetype plugin indent on
-syntax on
+syntax enable
 
-" https://superuser.com/a/632661
-autocmd FileType make set noexpandtab shiftwidth=8 softtabstop=0
+" Preserve tabs in Makefiles
+autocmd FileType make setlocal noexpandtab shiftwidth=8 softtabstop=0
+
+" -----------------------------------------------------------------------------
+" Leader
+" -----------------------------------------------------------------------------
+let mapleader = ' '
+
+" -----------------------------------------------------------------------------
+" Keymaps (parity with your Neovim keymaps)
+" -----------------------------------------------------------------------------
+nnoremap <Esc> :nohlsearch<CR>
+
+" Window navigation
+nnoremap <C-h> <C-w><C-h>
+nnoremap <C-l> <C-w><C-l>
+nnoremap <C-j> <C-w><C-j>
+nnoremap <C-k> <C-w><C-k>
+
+" Netrw explorer (like <leader>pv)
+nnoremap <leader>pv :Ex<CR>
+
+" Move selected lines up/down
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
+" Join line without moving cursor
+nnoremap J mzJ`z
+
+" Center on next/prev search and paging
+nnoremap n nzzzv
+nnoremap N Nzzzv
+nnoremap <C-d> <C-d>zz
+nnoremap <C-u> <C-u>zz
+
+" Format paragraph and return to location
+nnoremap =ap ma=ap`a
+
+" System clipboard copy/paste (OSC52 fallback below)
+if has('clipboard')
+  nnoremap <leader>y "+y
+  vnoremap <leader>y "+y
+  nnoremap <leader>p "+p
+  vnoremap <leader>p "+p
+  nnoremap <leader>Y "+Y
+  nnoremap <leader>P "+P
+else
+  " If no +clipboard, prefer OSC52 yank when plugin is present
+  augroup osc52_maps
+    autocmd!
+    autocmd User OSCYankPost echo "Yanked via OSC52"
+  augroup END
+  vnoremap <leader>y :OSCYank<CR>
+  nnoremap <leader>y V:OSCYank<CR>
+endif
+
+" Delete to black hole
+nnoremap <leader>d "_d
+vnoremap <leader>d "_d
+
+" Close current buffer
+nnoremap <leader>w :bdelete<CR>
+
+" Quickfix (diagnostics list analogue)
+nnoremap <leader>q :copen<CR>
+
+" Terminal escape (if available)
+if exists(':terminal')
+  tnoremap <Esc><Esc> <C-\><C-n>
+endif
+
+" -----------------------------------------------------------------------------
+" Plugins (vim-plug)
+" -----------------------------------------------------------------------------
+" Install vim-plug if needed: https://github.com/junegunn/vim-plug
+"   curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+"     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
+call plug#begin('~/.vim/plugged')
+
+" Colorscheme (Vim-compatible Tokyo Night)
+Plug 'ghifarit53/tokyonight-vim'
+
+" Git
+Plug 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+
+" Keymap helper
+Plug 'liuchengxu/vim-which-key'
+
+" Indent detection
+Plug 'tpope/vim-sleuth'
+
+" Fuzzy finder (preferred) + fallback
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'ctrlpvim/ctrlp.vim'
+
+" LSP + completion (single plugin covering lsp/cmp/mason equivalents)
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+" Broad language syntax
+Plug 'sheerun/vim-polyglot'
+
+" Clipboard over SSH (OSC52)
+Plug 'ojroques/vim-oscyank'
+
+" Highlight on yank (like Kickstart)
+Plug 'machakann/vim-highlightedyank'
+
+call plug#end()
+
+" -----------------------------------------------------------------------------
+" Plugin configuration and integrations
+" -----------------------------------------------------------------------------
+
+" Colorscheme setup
+let g:tokyonight_style = 'night'
+set background=dark
+try
+  colorscheme tokyonight
+catch
+  colorscheme desert
+endtry
+
+" Gitgutter signs similar to gitsigns
+let g:gitgutter_sign_added = '+'
+let g:gitgutter_sign_modified = '~'
+let g:gitgutter_sign_removed = '_'
+let g:gitgutter_sign_removed_first_line = '‾'
+let g:gitgutter_sign_modified_removed = '~'
+
+" Which-key: open on <leader>
+let g:which_key_use_floating_win = 1
+nnoremap <silent> <leader> :<C-u>WhichKey '<Space>'<CR>
+
+" Which-key registrations for leader groups
+let g:which_key_map = {}
+
+" Search group: <leader>s*
+let g:which_key_map.s = {
+      \ 'name': '+search',
+      \ 'f': 'find files',
+      \ 'g': 'live grep',
+      \ 'd': 'diagnostics',
+      \ '.': 'recent files',
+      \ }
+
+" Buffers on <leader><leader>
+let g:which_key_map[' '] = 'buffers'
+
+" Common utilities
+let g:which_key_map.y = 'yank to clipboard'
+let g:which_key_map.p = 'paste from clipboard'
+let g:which_key_map.d = 'delete without yank'
+let g:which_key_map.w = 'close buffer'
+let g:which_key_map.q = 'open quickfix'
+
+" Register the mappings for <Space>
+call which_key#register('<Space>', 'g:which_key_map')
+
+" Fuzzy finder mappings (prefer fzf if present) — set after plugins load
+function! s:setup_finder_maps() abort
+  if exists(':Files')
+    nnoremap <silent> <leader>sf :Files<CR>
+    nnoremap <silent> <leader>sg :Rg<CR>
+    nnoremap <silent> <leader>sd :CocDiagnostics<CR>
+    nnoremap <silent> <leader>s. :History<CR>
+    nnoremap <silent> <leader><leader> :Buffers<CR>
+  elseif exists(':CtrlP')
+    nnoremap <silent> <leader>sf :CtrlP<CR>
+    nnoremap <silent> <leader><leader> :CtrlPBuffer<CR>
+  else
+    " Fallback so <leader>sf still works without fzf/ctrlp
+    nnoremap <silent> <leader>sf :Ex<CR>
+  endif
+endfunction
+
+augroup finder_maps
+  autocmd!
+  " Plugin commands are defined after startup; bind maps on VimEnter
+  autocmd VimEnter * call s:setup_finder_maps()
+augroup END
+
+" Coc: bridge Neovim-style LSP keymaps
+nnoremap <silent> grn :<C-u>CocRename<CR>
+nnoremap <silent> gra :<C-u>CocAction<CR>
+nmap <silent> grd <Plug>(coc-definition)
+nmap <silent> grD <Plug>(coc-declaration)
+nmap <silent> grr <Plug>(coc-references)
+nmap <silent> gri <Plug>(coc-implementation)
+nnoremap <silent> gO :CocList outline<CR>
+nnoremap <silent> gW :CocList -I symbols<CR>
+nnoremap <silent> <leader>f :call CocActionAsync('format')<CR>
+
+" Highlight TODO-like comments (lightweight replacement for todo-comments)
+augroup todo_highlight
+  autocmd!
+  autocmd Syntax * syntax match TodoKeyword /\v<(TODO|FIXME|HACK|NOTE):?/
+  autocmd ColorScheme * highlight default link TodoKeyword Todo
+augroup END

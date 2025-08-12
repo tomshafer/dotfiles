@@ -13,6 +13,7 @@ export XDG_CACHE_HOME="$HOME/.cache"
 if command -v brew >/dev/null 2>&1; then
     eval "$(brew shellenv)"        # Set up paths and exports
     export HOMEBREW_NO_ANALYTICS=1 # Disable telemetry
+    export HOMEBREW_NO_ENV_HINTS=1 # Disable env hints
 fi
 
 # System defaults ------------------------------------------

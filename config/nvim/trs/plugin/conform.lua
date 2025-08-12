@@ -31,6 +31,8 @@ return {
             -- You can use 'stop_after_first' to run the first available formatter from the list
             lua = { "stylua" },
             python = { "ruff_format", "ruff_organize_imports" },
+            bash = { "shfmt" },
+            sh = { "shfmt" },
         },
     },
 }
