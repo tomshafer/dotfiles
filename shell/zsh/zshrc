@@ -34,19 +34,26 @@ zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path $HOME/.zsh/cache
 
 # Homebrew completions
-if command -v brew >/dev/null; then
-    if [[ -d $(brew --prefix)/share/zsh-completions ]]; then
-        fpath+="$(brew --prefix)/share/zsh-completions"
+if [[ -n $HOMEBREW_PREFIX ]]; then
+    if [[ -d $HOMEBREW_PREFIX/share/zsh-completions ]]; then
+        fpath+="$HOMEBREW_PREFIX/share/zsh-completions"
     fi
-    if [[ -d $(brew --prefix)/share/zsh/site-functions ]]; then
-        fpath+="$(brew --prefix)/share/zsh/site-functions"
+    if [[ -d $HOMEBREW_PREFIX/share/zsh/site-functions ]]; then
+        fpath+="$HOMEBREW_PREFIX/share/zsh/site-functions"
+    fi
+
+    # Hack for work setup: I have local copies of completions
+    # and need to ignore the Homebrew ones
+    if [[ -n $TRS_HOMEBREW_DROP_ZSH_FPATH ]]; then
+        fpath=(${fpath:#/opt/homebrew/share/zsh/site-functions})
+        fpath=(${fpath:#/opt/homebrew/share/zsh})
     fi
 fi
 
-# Local completions from, e.g., Typer
-if [[ -d $HOME/.zfunc ]]; then
-    fpath=(~/.zfunc $fpath)
-fi
+# Local completions
+for d in ~/.local/share/zsh/site-functions ~/.zfunc; do
+  [[ -d $d ]] && fpath=($d $fpath)
+done
 
 autoload -Uz compinit && compinit  # Completion
 autoload -Uz bashcompinit && bashcompinit  # Incorporate Bash, too

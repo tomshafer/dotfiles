@@ -14,6 +14,10 @@ if command -v brew >/dev/null 2>&1; then
     eval "$(brew shellenv)"        # Set up paths and exports
     export HOMEBREW_NO_ANALYTICS=1 # Disable telemetry
     export HOMEBREW_NO_ENV_HINTS=1 # Disable env hints
+
+    # Homebrew can mess up the path
+    # shellcheck disable=SC2034
+    typeset -U path
 fi
 
 # System defaults ------------------------------------------

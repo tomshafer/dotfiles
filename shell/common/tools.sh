@@ -16,13 +16,11 @@ fi
 
 # uv -------------------------------------------------------
 
-if command -v uv >/dev/null; then
-    eval "$(uv generate-shell-completion $DOTFILES_SHELL)"
-fi
-
-if command -v uvx >/dev/null; then
-    eval "$(uvx --generate-shell-completion $DOTFILES_SHELL)"
-fi
+for cmd in uv uvx; do
+    if command -v $cmd >/dev/null && [[ -z ${_comps[$cmd]} ]]; then
+        eval "$($cmd --generate-shell-completion $DOTFILES_SHELL)"
+    fi
+done
 
 # Fix completions for `uv run` in zsh
 # https://github.com/astral-sh/uv/issues/8432#issuecomment-2867318195
@@ -57,7 +55,7 @@ fi
 # zoxide ---------------------------------------------------
 
 if command -v zoxide >/dev/null; then
-    eval "$(zoxide init --cmd z $DOTFILES_SHELL)"
+    eval "$(zoxide init $DOTFILES_SHELL)"
 fi
 
 # nvm ------------------------------------------------------
