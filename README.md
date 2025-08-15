@@ -6,6 +6,7 @@
 - `TRS_PS1_NUM_DIRS`: Number of directories to show in prompt
   `pwd` (Zsh only)
 - `TRS_PS1_ICON`: Prompt icon
+- `TRS_HOMEBREW_DROM_ZSH_FPATH`: Remove Homebrew additions to `fpath` to fix completion issues
 
 ## Installing these dotfiles
 
