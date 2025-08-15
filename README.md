@@ -1,5 +1,12 @@
 # Dotfiles
 
+## Configuration flags
+
+- `TRS_PS1_LABEL`: Label in front of the prompt
+- `TRS_PS1_NUM_DIRS`: Number of directories to show in prompt
+  `pwd` (Zsh only)
+- `TRS_PS1_ICON`: Prompt icon
+
 ## Installing these dotfiles
 
 Best practice, I think:
