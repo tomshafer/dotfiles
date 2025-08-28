@@ -107,6 +107,12 @@ require("lazy").setup({
     -- General plugins
     { "NMAC427/guess-indent.nvim", opts = {} }, -- Detect tabstop and shiftwidth automatically
     { "tpope/vim-fugitive" }, -- Git configuration
+    {
+        "windwp/nvim-autopairs",
+        event = "InsertEnter",
+        config = true,
+        opts = { check_ts = true },
+    },
     require "trs.plugin.gitsigns", -- Add git markers in the margin
     require "trs.plugin.which-key", -- Show key command hints
     require "trs.plugin.telescope", -- Fuzzy finder
