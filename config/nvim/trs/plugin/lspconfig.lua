@@ -316,7 +316,16 @@ return {
 
                     -- R formatting and language server
                     air = {},
-                    r_language_server = {},
+                    r_language_server = {
+                        settings = {
+                            r = {
+                                server_capabilities = {
+                                    documentFormattingProvider = false,
+                                    documentRangeFormattingProvider = false,
+                                },
+                            },
+                        },
+                    },
 
                     -- Bash language server
                     bashls = {},
@@ -348,6 +357,7 @@ return {
                 "basedpyright", -- Python LSP and type checking
                 "bash-language-server", -- Bash LSP
                 "air", -- R formatter
+                "r-languageserver", -- R language server
             })
 
             require("mason-tool-installer").setup {

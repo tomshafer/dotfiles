@@ -23,6 +23,7 @@ return {
             "vim",
             "vimdoc",
             "python",
+            "r",
         },
         -- Autoinstall languages that are not installed
         auto_install = true,

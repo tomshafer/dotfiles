@@ -84,3 +84,6 @@ vim.o.wrap = false
 -- Wrap at column 70 by default
 vim.opt.textwidth = 70
 vim.opt.formatoptions:append "tcq"
+
+-- Indent
+vim.opt.autoindent = true

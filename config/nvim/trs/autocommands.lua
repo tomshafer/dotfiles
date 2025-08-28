@@ -42,6 +42,7 @@ local widths = {
     markdown = 70,
     text = 70,
     python = 88,
+    r = 88,
 }
 
 vim.api.nvim_create_autocmd("FileType", {
