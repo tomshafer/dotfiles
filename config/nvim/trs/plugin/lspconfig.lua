@@ -301,8 +301,8 @@ return {
                         },
                     },
 
+                    -- Python formatting and language server
                     ruff = {},
-
                     basedpyright = {
                         settings = {
                             basedpyright = {
@@ -314,6 +314,11 @@ return {
                         },
                     },
 
+                    -- R formatting and language server
+                    air = {},
+                    r_language_server = {},
+
+                    -- Bash language server
                     bashls = {},
                 },
 
@@ -342,6 +347,7 @@ return {
                 "ruff", -- Python linting and formatting
                 "basedpyright", -- Python LSP and type checking
                 "bash-language-server", -- Bash LSP
+                "air", -- R formatter
             })
 
             require("mason-tool-installer").setup {
