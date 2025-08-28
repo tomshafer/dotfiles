@@ -35,3 +35,23 @@ vim.api.nvim_create_autocmd("FileType", {
         vim.fn.matchadd("GitCommitOverflow", [[\%>1l\%>72v.\+]], 10)
     end,
 })
+
+-- FileType settings
+local wrapping = vim.api.nvim_create_augroup("HardWrapByFiletype", { clear = true })
+local widths = {
+    markdown = 70,
+    text = 70,
+    python = 88,
+}
+
+vim.api.nvim_create_autocmd("FileType", {
+    group = wrapping,
+    pattern = vim.tbl_keys(widths),
+    callback = function(args)
+        local tw = widths[vim.bo[args.buf].filetype]
+        if tw then
+            vim.opt_local.textwidth = tw
+            vim.opt_local.formatoptions:append "t"
+        end
+    end,
+})
