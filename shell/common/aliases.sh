@@ -34,6 +34,7 @@ alias ...="cd ../.."
 
 # Git
 alias g="git"
+alias mkd="mkcd"
 
 # Fix systems where `bat` is called `batcat`
 if ! command -v bat >/dev/null && command -v batcat >/dev/null; then

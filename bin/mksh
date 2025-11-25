@@ -6,28 +6,28 @@
 set -euo pipefail
 
 usage() {
-    echo "Usage: $(basename "$0") FILENAME" >&2
+  echo "Usage: $(basename "$0") FILENAME" >&2
 }
 
 main() {
-    if [[ $# -lt 1 ]]; then
-        usage
-        exit 1
-    fi
+  if [[ $# -lt 1 ]]; then
+    usage
+    exit 1
+  fi
 
-    if [[ $# -gt 1 ]]; then
-        echo "Too many arguments provided." >&2
-        usage
-        exit 1
-    fi
+  if [[ $# -gt 1 ]]; then
+    echo "Too many arguments provided." >&2
+    usage
+    exit 1
+  fi
 
-    if [[ -f "$1" ]]; then
-        echo "File exists: \"$1\"" >&2
-        exit 1
-    fi
+  if [[ -f "$1" ]]; then
+    echo "File exists: \"$1\"" >&2
+    exit 1
+  fi
 
-    # shellcheck disable=SC2016
-    local template='
+  # shellcheck disable=SC2016
+  local template='
     #!/usr/bin/env bash
 
     set -euo pipefail
@@ -44,8 +44,8 @@ main() {
 
     main "$@"'
 
-    echo "$template" | sed -E 's/^[[:space:]]*//' | tail -n +2 > "$1"
-    chmod +x "$1"
+  echo "$template" | sed -E 's/^[[:space:]]*//' | tail -n +2 >"$1"
+  chmod +x "$1"
 }
 
 main "$@"

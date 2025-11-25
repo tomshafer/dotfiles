@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Find and activate a virtual env in the directory tree
+
+set -euo pipefail
+[[ ${TRACE-0} -eq 1 ]] && set -x
+
+venv() {
+  # If a virtual env is set, deactivate it
+  if [[ -n ${VIRTUAL_ENV-} ]]; then
+    if command -v deactivate >/dev/null; then
+      echo "Deactivated $VIRTUAL_ENV"
+      deactivate
+    fi
+  fi
+
+  local here parent dr
+  here="$(pwd)"
+
+  while :; do
+    # Try to fine a venv in the directory
+    for dr in .venv .env venv env; do
+      if [[ -d $here/$dr ]]; then
+        echo >&2 "Activated   $here/$dr"
+        # shellcheck disable=SC1090
+        source "$here"/"$dr"/bin/activate
+        echo >&2 "python:     $(which python)"
+        echo >&2 "pip:        $(which pip)"
+        return
+      fi
+    done
+
+    # If not, loop again with the parent
+    parent=$(dirname "$here")
+
+    # Break when the parent is repeated
+    if [[ $parent == "$here" ]]; then
+      break
+    fi
+
+    here="$parent"
+  done
+  echo >&2 "No venv was located"
+}
+
+venv "$@"

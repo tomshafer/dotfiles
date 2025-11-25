@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Make an R or Python project structure
+
+set -euo pipefail
+[[ ${TRACE:-0} -eq 1 ]] && set -x
+
+usage() {
+  echo >&2 "Usage: $(basename "$0") [-h] (-r | -p) [OPTIONS] DIR"
+  echo >&2
+  echo >&2 "Options:"
+  echo >&2 "  -r      Create an R project"
+  echo >&2 "  -p      Create a Python project"
+  echo >&2
+  echo >&2 "Additional options are passed to project creation."
+}
+
+main() {
+  if [[ $# -lt 2 || ${1:-} =~ ^-*h(elp)?$ ]]; then
+    usage
+    exit 1
+  fi
+
+  # Pop the project type and working directory
+  local ptype=${1-}
+  local pwdir=${!#}
+  set -- "${@:2:$(($# - 2))}"
+
+  if [[ ! $ptype =~ ^-[rp]$ ]]; then
+    echo >&2 "Expected project type -r or -p (got \"$ptype\")"
+    exit 1
+  fi
+
+  if [[ "$ptype" == "-r" ]]; then
+    echo >&2 "TODO: Create R project"
+  elif [[ "$ptype" == "-p" ]]; then
+    uv init "$@" "$pwdir"
+    cd "$pwdir"
+    uv add --dev --no-sync ruff ty pytest
+  fi
+}
+
+main "$@"
