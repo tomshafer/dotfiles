@@ -58,6 +58,12 @@ if command -v zoxide >/dev/null; then
     eval "$(zoxide init $DOTFILES_SHELL)"
 fi
 
+# direnv ---------------------------------------------------
+
+if command -v direnv >/dev/null; then
+    eval "$(direnv hook $DOTFILES_SHELL)"
+fi
+
 # nvm ------------------------------------------------------
 
 if [[ -d "$HOME/.nvm" ]]; then
@@ -73,13 +79,34 @@ if [[ -d "$HOME/.nvm" ]]; then
     }
 
     # Stubs that load nvm only when needed
-    node()     { __nvm_lazy_load; node     "$@"; }
-    npm()      { __nvm_lazy_load; npm      "$@"; }
-    npx()      { __nvm_lazy_load; npx      "$@"; }
-    corepack() { __nvm_lazy_load; corepack "$@"; }
-    yarn()     { __nvm_lazy_load; yarn     "$@"; }
-    pnpm()     { __nvm_lazy_load; pnpm     "$@"; }
-    nvm()      { __nvm_lazy_load; nvm      "$@"; }
+    node() {
+        __nvm_lazy_load
+        node "$@"
+    }
+    npm() {
+        __nvm_lazy_load
+        npm "$@"
+    }
+    npx() {
+        __nvm_lazy_load
+        npx "$@"
+    }
+    corepack() {
+        __nvm_lazy_load
+        corepack "$@"
+    }
+    yarn() {
+        __nvm_lazy_load
+        yarn "$@"
+    }
+    pnpm() {
+        __nvm_lazy_load
+        pnpm "$@"
+    }
+    nvm() {
+        __nvm_lazy_load
+        nvm "$@"
+    }
 fi
 
 # LM Studio ------------------------------------------------
