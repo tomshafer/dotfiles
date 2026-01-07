@@ -56,3 +56,10 @@ vim.api.nvim_create_autocmd("FileType", {
         end
     end,
 })
+
+-- Give back the thin cursor when Neovim exits
+vim.api.nvim_create_autocmd("VimLeave", {
+    callback = function()
+        vim.opt.guicursor = "a:ver25"
+    end,
+})
