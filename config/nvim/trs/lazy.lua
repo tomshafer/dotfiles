@@ -113,6 +113,7 @@ require("lazy").setup({
         config = true,
         opts = { check_ts = true },
     },
+    require "trs.plugin.quarto", -- Support Quarto better
     require "trs.plugin.gitsigns", -- Add git markers in the margin
     require "trs.plugin.which-key", -- Show key command hints
     require "trs.plugin.telescope", -- Fuzzy finder
