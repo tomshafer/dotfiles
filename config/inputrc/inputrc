@@ -11,6 +11,9 @@ set completion-ignore-case on
 set show-all-if-ambiguous on
 set show-all-if-unmodified on
 
+# Cycle through completions with Tab (closer to zsh menu select)
+"\t": menu-complete
+
 # Immediately add a trailing slash when autocompleting symlinks to directories
 set mark-symlinked-directories on
 
@@ -49,10 +52,14 @@ set bell-style none
 
 # macOS-style word movement (Option+arrow keys)
 
+"\e[1;3C": forward-word       # Option+Right
+"\e[1;3D": backward-word      # Option+Left
 "\e\e[C": forward-word       # Option+Right (alternative)
 "\e\e[D": backward-word      # Option+Left (alternative)
 
 # Home/End keys (Cmd+Left/Right on Mac)
+"\e[1;9D": beginning-of-line  # Cmd+Left
+"\e[1;9C": end-of-line        # Cmd+Right
 "\e[H": beginning-of-line    # Home
 "\e[F": end-of-line          # End
 

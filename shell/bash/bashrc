@@ -83,6 +83,20 @@ if ! declare -F _git >/dev/null 2>&1; then
 fi
 unset git_completion
 
+# Git prompt
+if ! declare -F __git_ps1 >/dev/null 2>&1; then
+    for git_prompt in \
+        "/opt/homebrew/etc/bash_completion.d/git-prompt.sh" \
+        "/usr/share/git/completion/git-prompt.sh" \
+        "/etc/bash_completion.d/git-prompt.sh"; do
+        if [[ -f "$git_prompt" ]]; then
+            source "$git_prompt"
+            break
+        fi
+    done
+fi
+unset git_prompt
+
 # Common tools ---------------------------------------------
 
 source "$DOTFILES_DIR/shell/common/tools.sh"
@@ -93,6 +107,8 @@ shopt -s histappend
 shopt -s histverify
 
 export HISTFILE="$HOME/.bash_history"
+
+export HISTTIMEFORMAT="%F %T "
 
 export HISTSIZE=100000     # 100,000 commands in memory
 export HISTFILESIZE=500000 # 500,000 commands on disk
@@ -105,14 +121,26 @@ export HISTCONTROL="ignoreboth:erasedups"
 export HISTIGNORE="ls:ll:la:cd:pwd:clear:history:exit"
 
 # Immediate history sync
-export PROMPT_COMMAND="history -a; history -n"
+if [[ $PROMPT_COMMAND != *"history -a; history -n"* ]]; then
+    PROMPT_COMMAND="history -a; history -n${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
+fi
+export PROMPT_COMMAND
 
 # Prompt ---------------------------------------------------
 
 blue=$(tput setaf 4)
+magenta=$(tput setaf 5)
 reset=$(tput sgr0)
 
-PS1="${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}\[$blue\]\W\[$reset\] ${TRS_PS1_ICON:-\$} "
+export PROMPT_DIRTRIM="${TRS_PS1_NUM_DIRS:-1}"
+
+git_prompt=""
+if declare -F __git_ps1 >/dev/null 2>&1; then
+    export GIT_PS1_SHOWDIRTYSTATE=1
+    git_prompt="\\[$magenta\\]\$(__git_ps1 ' (%s)')\\[$reset\\]"
+fi
+
+PS1="${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}\[$blue\]\w\[$reset\]${git_prompt} ${TRS_PS1_ICON:-\$} "
 export PS1
 
-unset blue reset
+unset blue magenta reset git_prompt
