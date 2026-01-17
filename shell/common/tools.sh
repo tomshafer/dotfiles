@@ -70,6 +70,31 @@ if [[ -d "$HOME/.nvm" ]]; then
     export NVM_DIR="$HOME/.nvm"
     export NVM_AUTO_USE=0
 
+    # Make default node binaries available before nvm lazy-loads.
+    # Generated with GPT 5.2 and Codex
+    if [[ -s "$NVM_DIR/alias/default" ]]; then
+        nvm_default="$(<"$NVM_DIR/alias/default")"
+        nvm_default_version=""
+        if [[ "$nvm_default" == "node" || "$nvm_default" == "stable" ]]; then
+            nvm_default_version="$(ls -1 "$NVM_DIR/versions/node" 2>/dev/null | sort -V | tail -n 1)"
+        elif [[ "$nvm_default" == lts/* ]]; then
+            lts_alias="$NVM_DIR/alias/${nvm_default#lts/}"
+            [[ -s "$lts_alias" ]] && nvm_default_version="$(<"$lts_alias")"
+        else
+            nvm_default_version="$nvm_default"
+        fi
+
+        if [[ -n "$nvm_default_version" ]]; then
+            nvm_default_version="${nvm_default_version#v}"
+            nvm_default_dir="$NVM_DIR/versions/node/v$nvm_default_version/bin"
+            if [[ -d "$nvm_default_dir" ]]; then
+                add_to_path "$nvm_default_dir"
+                export NVM_BIN="$nvm_default_dir"
+            fi
+        fi
+        unset nvm_default nvm_default_version nvm_default_dir lts_alias
+    fi
+
     [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
 
     __nvm_lazy_load() {
