@@ -56,19 +56,30 @@ for d in ~/.local/share/zsh/site-functions ~/.zfunc; do
   [[ -d $d ]] && fpath=($d $fpath)
 done
 
-autoload -Uz compinit && compinit  # Completion
-autoload -Uz bashcompinit && bashcompinit  # Incorporate Bash, too
+autoload -Uz compinit  # Completion
+autoload -Uz bashcompinit  # Incorporate Bash, too
 
 # Optimization: Don't rebuild the completion dump every time we start
 typeset -g ZSH_COMPDUMP="${ZDOTDIR:-$HOME}/.zcompdump-$HOST-$ZSH_VERSION"
 
 today_=$(date +'%j')
-cache_=$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)
-if [[ -s $ZSH_COMPDUMP && $today_ == $cache_ ]]; then
+cache_=""
+if zmodload -F zsh/stat b:zstat 2>/dev/null && zmodload -F zsh/datetime b:strftime 2>/dev/null; then
+  today_=$(strftime %j $EPOCHSECONDS)
+  if [[ -s $ZSH_COMPDUMP ]] && zstat -A zstat_mtime +mtime -- "$ZSH_COMPDUMP" 2>/dev/null; then
+    cache_=$(strftime %j ${zstat_mtime[1]})
+  fi
+fi
+
+if [[ -n $cache_ && $today_ == $cache_ ]]; then
   compinit -d "$ZSH_COMPDUMP"
 else
   compinit -C -d "$ZSH_COMPDUMP"
 fi
+
+bashcompinit
+
+unset zstat_mtime
 
 # Compile the dump for faster reads
 if [[ -s $ZSH_COMPDUMP && ( ! -s $ZSH_COMPDUMP.zwc || $ZSH_COMPDUMP -nt $ZSH_COMPDUMP.zwc ) ]]; then
