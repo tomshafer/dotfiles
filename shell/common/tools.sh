@@ -73,16 +73,30 @@ if [[ -d "$HOME/.nvm" ]]; then
     # Make default node binaries available before nvm lazy-loads.
     # Generated with GPT 5.2 and Codex
     if [[ -s "$NVM_DIR/alias/default" ]]; then
-        nvm_default="$(<"$NVM_DIR/alias/default")"
-        nvm_default_version=""
-        if [[ "$nvm_default" == "node" || "$nvm_default" == "stable" ]]; then
-            nvm_default_version="$(ls -1 "$NVM_DIR/versions/node" 2>/dev/null | sort -V | tail -n 1)"
-        elif [[ "$nvm_default" == lts/* ]]; then
-            lts_alias="$NVM_DIR/alias/${nvm_default#lts/}"
-            [[ -s "$lts_alias" ]] && nvm_default_version="$(<"$lts_alias")"
-        else
-            nvm_default_version="$nvm_default"
-        fi
+        __nvm_resolve_default() {
+            local target lts_alias lts_star
+            target="$(<"$NVM_DIR/alias/default")"
+
+            if [[ "$target" == "node" || "$target" == "stable" ]]; then
+                ls -1 "$NVM_DIR/versions/node" 2>/dev/null | sort -V | tail -n 1
+                return
+            fi
+
+            if [[ "$target" == "lts/*" ]]; then
+                lts_star="$NVM_DIR/alias/lts/*"
+                [[ -s $lts_star ]] && target="$(<"$lts_star")"
+            fi
+
+            if [[ "$target" == lts/* ]]; then
+                lts_alias="$NVM_DIR/alias/lts/${target#lts/}"
+                [[ -s "$lts_alias" ]] && target="$(<"$lts_alias")"
+            fi
+
+            printf '%s' "$target"
+        }
+
+        nvm_default_version="$(__nvm_resolve_default)"
+        unset -f __nvm_resolve_default
 
         if [[ -n "$nvm_default_version" ]]; then
             nvm_default_version="${nvm_default_version#v}"
@@ -92,7 +106,7 @@ if [[ -d "$HOME/.nvm" ]]; then
                 export NVM_BIN="$nvm_default_dir"
             fi
         fi
-        unset nvm_default nvm_default_version nvm_default_dir lts_alias
+        unset nvm_default_version nvm_default_dir
     fi
 
     [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
