@@ -2,6 +2,9 @@
 # https://askubuntu.com/a/87066
 set completion-ignore-case on
 
+# Configre so option-backspace doesn't eat whole paths
+"\e\C-?": unix-filename-rubout
+
 # https://github.com/mathiasbynens/dotfiles ----------------
 
 # List all matches in case multiple possible completions are possible

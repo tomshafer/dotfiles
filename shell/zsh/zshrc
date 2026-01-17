@@ -105,6 +105,9 @@ zle -N down-line-or-beginning-search
 bindkey "^[[A" up-line-or-beginning-search    # Up arrow
 bindkey "^[[B" down-line-or-beginning-search  # Down arrow
 
+# Split on "/" so we can option+backspace in directories
+WORDCHARS=${WORDCHARS//\/}
+
 # History configuration ----------------------------------------------
 
 setopt EXTENDED_HISTORY         # Save timestamp and duration
