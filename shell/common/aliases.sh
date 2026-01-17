@@ -20,7 +20,11 @@ alias lr="l -rt"
 if command -v lsd >/dev/null 2>&1; then
     alias ls="lsd --classify"
 else
-    alias ls="command ls -Fh --color=auto"
+    if command ls --color=auto >/dev/null 2>&1; then
+        alias ls="command ls -Fh --color=auto"
+    else
+        alias ls="command ls -FGh"
+    fi
 fi
 
 

@@ -21,7 +21,7 @@ shopt -s cdspell
 shopt -s checkwinsize
 shopt -s dirspell 2>/dev/null
 shopt -s globstar 2>/dev/null
-shopt -s no_empty_cmd_completion
+shopt -s no_empty_cmd_completion 2>/dev/null
 shopt -s nocaseglob
 
 # Common setup ---------------------------------------------

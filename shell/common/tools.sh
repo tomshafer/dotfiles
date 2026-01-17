@@ -17,8 +17,16 @@ fi
 # uv -------------------------------------------------------
 
 for cmd in uv uvx; do
-    if command -v $cmd >/dev/null && [[ -z ${_comps[$cmd]} ]]; then
-        eval "$($cmd --generate-shell-completion $DOTFILES_SHELL)"
+    if command -v "$cmd" >/dev/null; then
+        if [[ $DOTFILES_SHELL == "zsh" ]]; then
+            if [[ -z ${_comps[$cmd]-} ]]; then
+                eval "$($cmd --generate-shell-completion $DOTFILES_SHELL)"
+            fi
+        else
+            if ! complete -p "$cmd" >/dev/null 2>&1; then
+                eval "$($cmd --generate-shell-completion $DOTFILES_SHELL)"
+            fi
+        fi
     fi
 done
 
