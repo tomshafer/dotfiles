@@ -46,3 +46,11 @@ case "$shell_name" in
 esac
 unset shell_name
 unset -f load_shell_files
+
+# Local overrides
+if [ -z "${DOTFILES_LOCAL_LOADED-}" ]; then
+    DOTFILES_LOCAL_LOADED=1
+    dotfiles_local="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/local.sh"
+    [ -r "$dotfiles_local" ] && . "$dotfiles_local"
+    unset dotfiles_local
+fi

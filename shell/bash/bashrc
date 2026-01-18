@@ -144,3 +144,12 @@ PS1="${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}\[$blue\]\w\[$reset\]${git_prompt} ${TRS
 export PS1
 
 unset blue magenta reset git_prompt
+
+# Local overrides ------------------------------------------
+
+if [[ -z ${DOTFILES_LOCAL_LOADED-} ]]; then
+    DOTFILES_LOCAL_LOADED=1
+    dotfiles_local="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/local.sh"
+    [[ -r $dotfiles_local ]] && source "$dotfiles_local"
+    unset dotfiles_local
+fi

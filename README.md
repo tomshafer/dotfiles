@@ -8,6 +8,16 @@
 - `TRS_PS1_ICON`: Prompt icon
 - `TRS_HOMEBREW_DROP_ZSH_FPATH`: Remove Homebrew additions to `fpath` to fix completion issues
 
+## Local overrides
+
+If you want machine-specific or private settings, create a local file at:
+
+`~/.config/dotfiles/local.sh`
+
+This file is optional and not tracked. It is loaded at the end of both
+`shell/zsh/zshrc` and `shell/bash/bashrc`, so it can override defaults.
+Examples: work git identity, extra PATH entries, proxies, secrets.
+
 ## Installing these dotfiles
 
 Best practice, I think:
