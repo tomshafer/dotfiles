@@ -44,8 +44,18 @@ fi
 
 # Don't reset the screen
 export LESS="-RF"
+export LESSHISTFILE="-"  # Don't store a less history file
 export PAGER="less"
-export MANPAGER="less"
+export MANPAGER="less -R"
+
+# Less termcap colors (safe defaults when not using bat)
+export LESS_TERMCAP_mb=$'\033[1;31m'
+export LESS_TERMCAP_md=$'\033[1;36m'
+export LESS_TERMCAP_me=$'\033[0m'
+export LESS_TERMCAP_so=$'\033[01;44;33m'
+export LESS_TERMCAP_se=$'\033[0m'
+export LESS_TERMCAP_us=$'\033[1;32m'
+export LESS_TERMCAP_ue=$'\033[0m'
 
 # Use bat: https://github.com/sharkdp/bat?tab=readme-ov-file#man
 if command -v bat >/dev/null 2>&1; then
