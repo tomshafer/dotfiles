@@ -1,0 +1,44 @@
+name: Shell Config Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  shell-config:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install zsh (Ubuntu)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y zsh
+
+      - name: Syntax check
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n install.sh
+          bash -n shell/bash/bashrc
+          bash -n shell/bash/bash_profile
+          bash -n shell/common/*.sh
+          bash -n bin/*
+          sh -n shell/loader.sh
+          zsh -n shell/zsh/zshrc
+
+      - name: Source configs
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -i -c "source shell/bash/bashrc"
+          bash -i -c ". shell/loader.sh"
+          zsh -i -c "source shell/zsh/zshrc"
+          zsh -i -c "source shell/loader.sh"
