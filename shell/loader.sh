@@ -6,11 +6,19 @@
 
 DOTFILES=${DOTFILES:-"$HOME/dotfiles"}
 
+load_shell_files() {
+    dir="$1"
+    if [ -n "${ZSH_VERSION-}" ]; then
+        setopt localoptions nonomatch
+    fi
+    for f in "$dir"/*.sh; do
+        [ -r "$f" ] && . "$f"
+    done
+    unset dir f
+}
+
 # 1. Load commons first
-for f in "$DOTFILES"/shell/common/*.sh; do
-    [ -r "$f" ] && . "$f"
-done
-unset f
+load_shell_files "$DOTFILES/shell/common"
 
 # 2. Load shell-specific add-ons
 shell_name=""
@@ -33,7 +41,8 @@ if [ -z "$shell_name" ]; then
 fi
 
 case "$shell_name" in
-    zsh)  for f in "$DOTFILES"/shell/zsh/*.sh; do [ -r "$f" ] && . "$f"; done ;;
-    bash) for f in "$DOTFILES"/shell/bash/*.sh; do [ -r "$f" ] && . "$f"; done ;;
+    zsh)  load_shell_files "$DOTFILES/shell/zsh" ;;
+    bash) load_shell_files "$DOTFILES/shell/bash" ;;
 esac
 unset shell_name
+unset -f load_shell_files

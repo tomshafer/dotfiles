@@ -32,7 +32,7 @@ done
 
 # Fix completions for `uv run` in zsh
 # https://github.com/astral-sh/uv/issues/8432#issuecomment-2867318195
-if [[ $DOTFILES_SHELL == "zsh" ]]; then
+if [[ $DOTFILES_SHELL == "zsh" ]] && command -v compdef >/dev/null 2>&1; then
     _uv_run_mod() {
         # shellcheck disable=SC2154
         if [[ "${words[2]}" == "run" && "${words[CURRENT]}" != -* ]]; then

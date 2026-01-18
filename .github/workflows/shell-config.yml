@@ -38,6 +38,7 @@ jobs:
         shell: bash
         env:
           DOTFILES: ${{ github.workspace }}
+          TERM: xterm-256color
         run: |
           set -euo pipefail
           bash -i -c "source shell/bash/bashrc"
