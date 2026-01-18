@@ -2,7 +2,7 @@
 # https://askubuntu.com/a/87066
 set completion-ignore-case on
 
-# Configre so option-backspace doesn't eat whole paths
+# Configure so option-backspace doesn't eat whole paths
 "\e\C-?": unix-filename-rubout
 
 # https://github.com/mathiasbynens/dotfiles ----------------
@@ -11,6 +11,8 @@ set completion-ignore-case on
 set show-all-if-ambiguous on
 set show-all-if-unmodified on
 
+# Readline 6+ enhancements (avoid warnings on older systems)
+$if version >= 6
 # Cycle through completions with Tab (closer to zsh menu select)
 "\t": menu-complete
 
@@ -29,23 +31,27 @@ set completion-query-items 200
 # Show extra file information when completing, like `ls -F` does
 set visible-stats on
 
+# Treat hyphens and underscores as equivalent for completion
+set completion-map-case on
+$endif
+
+# Readline 8+ enhancements (avoid warnings on older systems)
+$if version >= 8
 # Be more intelligent when autocompleting by also looking at the text after
 # the cursor. For example, when the current line is "cd ~/src/mozil", and
 # the cursor is on the "z", pressing Tab will not autocomplete it to "cd
-# ~/src/mozillail", but to "cd ~/src/mozilla". (This is supported by the
-# Readline used by Bash 4.)
+# ~/src/mozillail", but to "cd ~/src/mozilla".
 set skip-completed-text on
+
+# Colored completion results
+set colored-completion-prefix on
+set colored-stats on
+$endif
 
 # Allow UTF-8 input and output, instead of showing stuff like $'\0123\0456'
 set input-meta on
 set output-meta on
 set convert-meta off
-
-# Use Alt/Meta + Delete to delete the preceding word
-"\e[3;3~": kill-word
-
-# Treat hyphens and underscores as equivalent for completion
-set completion-map-case on
 
 # Disable the bell entirely
 set bell-style none
@@ -78,9 +84,3 @@ set bell-style none
 
 # Quick directory navigation
 "\C-l": clear-screen         # Ctrl+L to clear
-
-# Tab completion enhancements
-set colored-completion-prefix on
-set colored-stats on
-set mark-symlinked-directories on
-set visible-stats on
