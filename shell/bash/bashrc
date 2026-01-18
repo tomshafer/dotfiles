@@ -23,6 +23,7 @@ shopt -s dirspell 2>/dev/null
 shopt -s globstar 2>/dev/null
 shopt -s no_empty_cmd_completion 2>/dev/null
 shopt -s nocaseglob
+set -o noclobber
 
 # Common setup ---------------------------------------------
 
@@ -125,6 +126,10 @@ if [[ $PROMPT_COMMAND != *"history -a; history -n"* ]]; then
     PROMPT_COMMAND="history -a; history -n${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
 fi
 export PROMPT_COMMAND
+
+# History file permissions
+touch "$HISTFILE" 2>/dev/null
+chmod 600 "$HISTFILE" 2>/dev/null
 
 # Prompt ---------------------------------------------------
 

@@ -14,6 +14,7 @@ setopt COMPLETE_IN_WORD        # Allow completion in middle of words
 setopt CORRECT                 # Command correction suggestions
 setopt NO_BEEP
 setopt NO_CASE_GLOB
+setopt NO_CLOBBER
 setopt PROMPT_SUBST            # Expand PROMPT and RPROMPT
 
 autoload -Uz colors && colors  # Enable ZSH color names
@@ -130,11 +131,15 @@ setopt HIST_REDUCE_BLANKS       # Remove extra whitespace before saving
 setopt HIST_SAVE_NO_DUPS        # Don't write duplicate commands
 setopt HIST_VERIFY              # Show expanded history command before executing
 setopt INC_APPEND_HISTORY_TIME  # Write commands immediately w/timestamps
+setopt HIST_FCNTL_LOCK          # Lock history file when possible
 setopt SHARE_HISTORY            # Share history between all zsh sessions
 
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=100000  # 100,000 commands in memory
 SAVEHIST=500000  # 500,000 commands on disk
+
+touch "$HISTFILE" 2>/dev/null
+chmod 600 "$HISTFILE" 2>/dev/null
 
 # Prompt ---------------------------------------------------
 
