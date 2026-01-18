@@ -122,10 +122,21 @@ export HISTCONTROL="ignoreboth:erasedups"
 export HISTIGNORE="ls:ll:la:cd:pwd:clear:history:exit"
 
 # Immediate history sync
-if [[ $PROMPT_COMMAND != *"history -a; history -n"* ]]; then
-    PROMPT_COMMAND="history -a; history -n${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
+history_sync_cmd="history -a; history -n"
+if [[ ${PROMPT_COMMAND-} != *"$history_sync_cmd"* ]]; then
+    if [[ -n ${PROMPT_COMMAND-} ]]; then
+        PROMPT_COMMAND="$history_sync_cmd; $PROMPT_COMMAND"
+    else
+        PROMPT_COMMAND="$history_sync_cmd"
+    fi
+fi
+
+exit_status_cmd='__DOTFILES_LAST_STATUS=$?'
+if [[ $PROMPT_COMMAND != *"$exit_status_cmd"* ]]; then
+    PROMPT_COMMAND="$exit_status_cmd; $PROMPT_COMMAND"
 fi
 export PROMPT_COMMAND
+unset history_sync_cmd exit_status_cmd
 
 # History file permissions
 touch "$HISTFILE" 2>/dev/null
@@ -135,6 +146,7 @@ chmod 600 "$HISTFILE" 2>/dev/null
 
 blue=$(tput setaf 4)
 magenta=$(tput setaf 5)
+yellow=$(tput setaf 3)
 reset=$(tput sgr0)
 
 export PROMPT_DIRTRIM="${TRS_PS1_NUM_DIRS:-1}"
@@ -145,10 +157,15 @@ if declare -F __git_ps1 >/dev/null 2>&1; then
     git_prompt="\\[$magenta\\]\$(__git_ps1 ' (%s)')\\[$reset\\]"
 fi
 
-PS1="${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}\[$blue\]\w\[$reset\]${git_prompt} ${TRS_PS1_ICON:-\$} "
+status_color="\\[$reset\\]"
+if [[ ${__DOTFILES_LAST_STATUS:-0} -ne 0 ]]; then
+    status_color="\\[$red\\]"
+fi
+
+PS1="${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}\[$blue\]\w\[$reset\]${git_prompt} ${status_color}${TRS_PS1_ICON:-\$}\\[$reset\\] "
 export PS1
 
-unset blue magenta reset git_prompt
+unset blue magenta yellow reset git_prompt status_color
 
 # Local overrides ------------------------------------------
 
