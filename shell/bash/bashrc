@@ -160,7 +160,7 @@ fi
 
 status_color="\\[$reset\\]"
 if [[ ${__DOTFILES_LAST_STATUS:-0} -ne 0 ]]; then
-    status_color="\\[$yellow_bg$black\\]"
+    status_color="\\[$yellow\\]"
 fi
 
 PS1="${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}\[$blue\]\w\[$reset\]${git_prompt} ${status_color}${TRS_PS1_ICON:-\$}\\[$reset\\] "
