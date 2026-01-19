@@ -88,6 +88,10 @@
     # Detect copies as well as renames
     renames = copies
 
+[log]
+    # Use consistent date output
+    date = iso-local
+
 [diff "bin"]
     # Use `hexdump` to diff binary files.
     textconv = hexdump -v -C
@@ -112,6 +116,15 @@
 [merge]
     # Include summaries of merged commits in newly created merge commit messages
     log = true
+    # Better conflict context
+    conflictstyle = zdiff3
+
+[rebase]
+    autostash = true
+
+[rerere]
+    enabled = true
+
 
 [pull]
     # Only full in fast-forwards merges by default

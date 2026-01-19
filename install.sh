@@ -25,8 +25,15 @@ LOCK_FILE="$HOME/.dotfiles-install.lock"
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
 # Global flags
-BACKUP_APPROVED=false
 DRY_RUN=false
+
+# Summary counters
+LINKED_COUNT=0
+SKIPPED_COUNT=0
+BACKED_UP_COUNT=0
+MISSING_SOURCE_COUNT=0
+declare -a MANUAL_STEPS=()
+declare -a MISSING_SOURCES=()
 
 # File mapping configuration
 # Format: "source_path:target_path:type"
@@ -102,6 +109,34 @@ print_warning() {
 ######################################################################
 print_error() {
     echo -e "${RED}ERROR${NC}    $1"
+}
+
+######################################################################
+# Summary helpers.
+# Globals:
+#   LINKED_COUNT, SKIPPED_COUNT, BACKED_UP_COUNT, MISSING_SOURCE_COUNT
+#   MANUAL_STEPS, MISSING_SOURCES
+######################################################################
+record_linked() {
+    LINKED_COUNT=$((LINKED_COUNT + 1))
+}
+
+record_skipped() {
+    SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+}
+
+record_backup() {
+    BACKED_UP_COUNT=$((BACKED_UP_COUNT + 1))
+}
+
+record_missing_source() {
+    local source_path="$1"
+    MISSING_SOURCE_COUNT=$((MISSING_SOURCE_COUNT + 1))
+    MISSING_SOURCES+=("$source_path")
+}
+
+record_manual_step() {
+    MANUAL_STEPS+=("$1")
 }
 
 ######################################################################
@@ -247,6 +282,38 @@ ask_confirmation() {
 }
 
 ######################################################################
+# Ask user how to handle a conflicting file.
+# In dry-run mode, simulates a skip without prompting.
+# Globals:
+#   DRY_RUN - If true, simulates a skip
+# Arguments:
+#   $1 - Prompt message to display
+# Outputs:
+#   Writes one of: skip, backup, overwrite
+######################################################################
+ask_conflict_action() {
+    local prompt="$1"
+
+    if [ "$DRY_RUN" = true ]; then
+        print_status "[DRY RUN] Would prompt: $prompt (s/b/o)"
+        echo "skip"
+        return 0
+    fi
+
+    local response
+    while true; do
+        echo -n "$prompt (s=skip, b=backup, o=overwrite): "
+        read -r response
+        case "$response" in
+            [Ss]*) echo "skip"; return 0 ;;
+            [Bb]*) echo "backup"; return 0 ;;
+            [Oo]*) echo "overwrite"; return 0 ;;
+            * ) echo "Please answer s, b, or o." ;;
+        esac
+    done
+}
+
+######################################################################
 # Safely execute commands with error handling and dry-run support.
 # In dry-run mode, shows what would be executed without running it.
 # Globals:
@@ -325,6 +392,7 @@ backup_file() {
     
     if [ "$DRY_RUN" = true ]; then
         print_status "[DRY RUN] Would backup $source_file to $backup_path"
+        record_backup
         return 0
     fi
     
@@ -340,6 +408,7 @@ backup_file() {
         print_error "Failed to backup file: $source_file"
         return 1
     fi
+    record_backup
 }
 
 ######################################################################
@@ -363,10 +432,9 @@ is_correct_symlink() {
 ######################################################################
 # Safely create a symlink with comprehensive error handling.
 # Creates parent directories if needed, handles existing files/symlinks,
-# and respects backup approval status and dry-run mode.
+# and respects dry-run mode.
 # Globals:
 #   DRY_RUN - If true, simulates symlink creation
-#   BACKUP_APPROVED - If true, backs up conflicting files
 # Arguments:
 #   $1 - Source file path (what symlink points to)
 #   $2 - Target symlink path (where to create symlink)
@@ -395,24 +463,48 @@ create_symlink() {
     # Check if target already exists and is correct
     if is_correct_symlink "$target" "$source"; then
         print_status "Symlink already exists and is correct: $target"
+        record_skipped
         return 0
     fi
     
     # Handle existing file/symlink (including broken symlinks)
     if [ -e "$target" ] || [ -L "$target" ]; then
-        if [ "$BACKUP_APPROVED" = true ]; then
-            if ! backup_file "$target"; then
-                return 1
-            fi
-        else
-            print_status "Skipping: $target"
-            return 1
-        fi
+        local action
+        action=$(ask_conflict_action "Conflict: $target exists")
+        case "$action" in
+            skip)
+                print_status "Skipping: $target"
+                record_skipped
+                return 0
+                ;;
+            backup)
+                if ! backup_file "$target"; then
+                    return 1
+                fi
+                ;;
+            overwrite)
+                if [ -d "$target" ] && [ ! -L "$target" ]; then
+                    print_warning "Skipping overwrite for directory: $target"
+                    record_manual_step "Remove directory $target to replace it with a symlink"
+                    record_skipped
+                    return 0
+                fi
+                if [ "$DRY_RUN" = true ]; then
+                    print_status "[DRY RUN] Would remove: $target"
+                else
+                    if ! rm -f "$target"; then
+                        print_error "Failed to remove existing file: $target"
+                        return 1
+                    fi
+                fi
+                ;;
+        esac
     fi
     
     # Create the symlink
     if [ "$DRY_RUN" = true ]; then
         print_status "[DRY RUN] Would create symlink: $target -> $source"
+        record_linked
     else
         print_status "Creating symlink: $target -> $source"
         if ! ln -s "$source" "$target"; then
@@ -420,6 +512,7 @@ create_symlink() {
             return 1
         fi
         print_success "Created symlink: $target"
+        record_linked
     fi
 }
 
@@ -454,83 +547,6 @@ resolve_target_path() {
             return 1
             ;;
     esac
-}
-
-######################################################################
-# Check for conflicts before installation and get user approval.
-# Scans all planned file operations to detect conflicts with existing files.
-# Prompts user for global approval to backup and replace conflicting files.
-# Globals:
-#   FILE_MAPPINGS - Array of config file mappings
-#   SHELL_MAPPINGS - Array of shell integration mappings
-#   DOTFILES_DIR - Source directory for dotfiles
-#   HOME - User's home directory
-#   BACKUP_APPROVED - Set to true if user approves backups
-# Arguments:
-#   None
-# Returns:
-#   0 on success
-#   Exits with code 1 if user declines backup approval
-######################################################################
-check_conflicts() {
-    print_status "Checking for conflicts..."
-    
-    local conflicts=()
-    
-    # Check config file mappings
-    for mapping in "${FILE_MAPPINGS[@]}"; do
-        local source_path="${mapping%%:*}"
-        local rest="${mapping#*:}"
-        local target_path="${rest%%:*}"
-        local type="${rest##*:}"
-        
-        local source_file="$DOTFILES_DIR/config/$source_path"
-        local target_file
-        target_file=$(resolve_target_path "$source_path" "$target_path" "$type")
-        
-        if [ -f "$source_file" ]; then
-            if [ -e "$target_file" ] || [ -L "$target_file" ]; then
-                if ! is_correct_symlink "$target_file" "$source_file"; then
-                    conflicts+=("$target_file")
-                fi
-            fi
-        fi
-    done
-    
-    # Check shell integration files
-    for mapping in "${SHELL_MAPPINGS[@]}"; do
-        local target_file_name="${mapping%%:*}"
-        local rest="${mapping#*:}"
-        local source_path="${rest%%:*}"
-        local description="${rest##*:}"
-        
-        local target_file="$HOME/$target_file_name"
-        local expected_source="source \"$DOTFILES_DIR/$source_path\""
-        
-        if [ -f "$target_file" ]; then
-            if [ -s "$target_file" ] && ! grep -Fxq "$expected_source" "$target_file"; then
-                conflicts+=("$target_file")
-            fi
-        fi
-    done
-    
-    # If there are conflicts, ask for global permission
-    if [ ${#conflicts[@]} -gt 0 ]; then
-        print_warning "The following files will be backed up and replaced:"
-        for conflict in "${conflicts[@]}"; do
-            echo "  - $conflict"
-        done
-        echo ""
-        if ask_confirmation "Do you want to backup and replace ALL conflicting files?"; then
-            BACKUP_APPROVED=true
-            print_status "Proceeding with backup and replacement of conflicting files"
-        else
-            print_error "Installation cancelled by user"
-            exit 1
-        fi
-    else
-        print_status "No conflicts detected"
-    fi
 }
 
 ######################################################################
@@ -571,6 +587,7 @@ install_config_files() {
             fi
         else
             print_warning "Source file not found: $source_file"
+            record_missing_source "$source_file"
         fi
     done
     
@@ -579,10 +596,9 @@ install_config_files() {
 
 ######################################################################
 # Safely create shell integration file with source line.
-# Checks for existing correct configuration, backs up conflicting files,
+# Checks for existing correct configuration, handles conflicts,
 # and creates new file with proper source line for dotfiles integration.
 # Globals:
-#   BACKUP_APPROVED - If true, backs up conflicting files
 #   DRY_RUN - If true, simulates file creation
 # Arguments:
 #   $1 - Target file path (e.g., ~/.bashrc)
@@ -600,20 +616,43 @@ create_shell_file() {
     if [ -f "$target_file" ]; then
         if grep -Fxq "$source_line" "$target_file"; then
             print_status "$description already configured in $target_file"
+            record_skipped
             return 0
         fi
-        
-        # Check if file has other content
-        if [ -s "$target_file" ]; then
-            if [ "$BACKUP_APPROVED" = true ]; then
+    fi
+
+    if [ -e "$target_file" ] || [ -L "$target_file" ]; then
+        local action
+        action=$(ask_conflict_action "Conflict: $target_file exists for $description")
+        case "$action" in
+            skip)
+                print_status "Skipping $target_file - you may need to manually add: $source_line"
+                record_manual_step "Add to $target_file: $source_line"
+                record_skipped
+                return 0
+                ;;
+            backup)
                 if ! backup_file "$target_file"; then
                     return 1
                 fi
-            else
-                print_status "Skipping $target_file - you may need to manually add: $source_line"
-                return 1
-            fi
-        fi
+                ;;
+            overwrite)
+                if [ -d "$target_file" ] && [ ! -L "$target_file" ]; then
+                    print_warning "Skipping overwrite for directory: $target_file"
+                    record_manual_step "Remove directory $target_file to replace it with a shell config"
+                    record_skipped
+                    return 0
+                fi
+                if [ "$DRY_RUN" = true ]; then
+                    print_status "[DRY RUN] Would remove: $target_file"
+                else
+                    if ! rm -f "$target_file"; then
+                        print_error "Failed to remove existing file: $target_file"
+                        return 1
+                    fi
+                fi
+                ;;
+        esac
     fi
     
     if [ "$DRY_RUN" = true ]; then
@@ -626,6 +665,7 @@ create_shell_file() {
         fi
         print_success "Created $target_file"
     fi
+    record_linked
 }
 
 ######################################################################
@@ -670,7 +710,7 @@ install_shell_integration() {
 
 ######################################################################
 # Main installation function that orchestrates the entire process.
-# Handles argument parsing, validation, conflict detection, and installation.
+# Handles argument parsing, validation, and installation.
 # Sets up proper cleanup and provides user feedback throughout the process.
 # Globals:
 #   DRY_RUN - If true, simulates installation without making changes
@@ -702,11 +742,6 @@ main() {
         exit 1
     fi
     
-    # Check for conflicts first
-    check_conflicts
-    
-    echo ""
-    
     # Install configuration files
     install_config_files
     
@@ -717,6 +752,28 @@ main() {
     
     echo ""
     print_success "Dotfiles installation complete!"
+
+    print_status "Summary:"
+    echo "  Linked: $LINKED_COUNT"
+    echo "  Skipped: $SKIPPED_COUNT"
+    echo "  Backed up: $BACKED_UP_COUNT"
+    echo "  Missing sources: $MISSING_SOURCE_COUNT"
+
+    if [ ${#MISSING_SOURCES[@]} -gt 0 ]; then
+        print_warning "Missing source files:"
+        for source_file in "${MISSING_SOURCES[@]}"; do
+            echo "  - $source_file"
+        done
+        unset source_file
+    fi
+
+    if [ ${#MANUAL_STEPS[@]} -gt 0 ]; then
+        print_warning "Manual steps required:"
+        for step in "${MANUAL_STEPS[@]}"; do
+            echo "  - $step"
+        done
+        unset step
+    fi
     
     # Show backup information if backup directory was created
     if [ -d "$BACKUP_DIR" ]; then
