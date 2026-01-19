@@ -1,0 +1,6 @@
+# Shared SSH defaults for all hosts.
+# Keep per-machine host entries in ~/.ssh/config.
+
+Host *
+    ServerAliveInterval 60
+    ServerAliveCountMax 3

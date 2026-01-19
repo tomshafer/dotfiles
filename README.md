@@ -18,6 +18,44 @@ This file is optional and not tracked. It is loaded at the end of both
 `shell/zsh/zshrc` and `shell/bash/bashrc`, so it can override defaults.
 Examples: work git identity, extra PATH entries, proxies, secrets.
 
+## SSH configuration
+
+This repo ships shared SSH defaults at `~/.config/dotfiles/ssh/config`.
+To use them, add the following to your per-machine `~/.ssh/config`:
+
+```sshconfig
+Include ~/.config/dotfiles/ssh/config
+Include ~/.ssh/config.local
+```
+
+Then keep your host entries in `~/.ssh/config` or `~/.ssh/config.local`
+as you prefer.
+
+An example local config is provided at:
+
+`config/dotfiles/ssh/config.local.example`
+
+### 1Password agent (macOS)
+
+Enable the 1Password SSH agent, then set `IdentityAgent` in
+`~/.ssh/config.local` using the socket path shown in `$SSH_AUTH_SOCK`:
+
+```sshconfig
+Host *
+    IdentityAgent "$SSH_AUTH_SOCK"
+    AddKeysToAgent no
+```
+
+### Without 1Password
+
+Use `IdentityFile` entries and optional agent settings in
+`~/.ssh/config.local`, for example:
+
+```sshconfig
+Host *
+    AddKeysToAgent yes
+```
+
 ## Installing these dotfiles
 
 Best practice, I think:

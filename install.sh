@@ -37,6 +37,7 @@ declare -a FILE_MAPPINGS=(
     "git/ignore:git/ignore:config"
     "lsd/colors.yml:lsd/colors.yml:config"
     "lsd/config.yml:lsd/config.yml:config"
+    "dotfiles/ssh/config:dotfiles/ssh/config:config"
     "vim/vimrc:.vimrc:home"
     "screen/screenrc:.screenrc:home"
     "conda/condarc:.condarc:home"

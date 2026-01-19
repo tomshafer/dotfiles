@@ -1,0 +1,10 @@
+# Example local SSH config for per-machine overrides.
+# Copy to ~/.ssh/config.local and customize.
+
+Host *
+    AddKeysToAgent yes
+
+# 1Password agent example (macOS):
+# Host *
+#     IdentityAgent "$SSH_AUTH_SOCK"
+#     AddKeysToAgent no
