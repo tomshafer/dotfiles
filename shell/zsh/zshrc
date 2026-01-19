@@ -151,7 +151,7 @@ zstyle ':vcs_info:*' unstagedstr "*"        # Asterisk if any unstaged changes
 zstyle ':vcs_info:*' formats "%{$fg[magenta]%}%b%u%c%{$reset_color%}"
 
 precmd() { vcs_info }
-PROMPT=$'${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}%{$fg[blue]%}%${TRS_PS1_NUM_DIRS:-1}d%{$reset_color%}%(?..%{$fg[red]%})${TRS_PS1_ICON:- %(!.#.$)}%{$reset_color%} '
+PROMPT=$'${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}%{$fg[blue]%}%${TRS_PS1_NUM_DIRS:-1}d%{$reset_color%} %(?..%{$bg[yellow]%}%{$fg[black]%})${TRS_PS1_ICON:-%(!.#.$)}%{$reset_color%} '
 RPROMPT='$vcs_info_msg_0_'
 
 # Local overrides ---------------------------------------------------

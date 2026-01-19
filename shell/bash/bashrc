@@ -146,7 +146,8 @@ chmod 600 "$HISTFILE" 2>/dev/null
 
 blue=$(tput setaf 4)
 magenta=$(tput setaf 5)
-yellow=$(tput setaf 3)
+yellow_bg=$(tput setab 3)
+black=$(tput setaf 0)
 reset=$(tput sgr0)
 
 export PROMPT_DIRTRIM="${TRS_PS1_NUM_DIRS:-1}"
@@ -159,13 +160,13 @@ fi
 
 status_color="\\[$reset\\]"
 if [[ ${__DOTFILES_LAST_STATUS:-0} -ne 0 ]]; then
-    status_color="\\[$red\\]"
+    status_color="\\[$yellow_bg$black\\]"
 fi
 
 PS1="${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}\[$blue\]\w\[$reset\]${git_prompt} ${status_color}${TRS_PS1_ICON:-\$}\\[$reset\\] "
 export PS1
 
-unset blue magenta yellow reset git_prompt status_color
+unset blue magenta yellow_bg black reset git_prompt status_color
 
 # Local overrides ------------------------------------------
 
