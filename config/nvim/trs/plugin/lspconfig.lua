@@ -329,6 +329,26 @@ return {
 
                     -- Bash language server
                     bashls = {},
+
+                    -- JSON language server
+                    jsonls = {
+                        settings = {
+                            json = {
+                                format = {
+                                    enable = true,
+                                    insertSpaces = true,
+                                    tabSize = 2,
+                                },
+                            },
+                            jsonc = {
+                                format = {
+                                    enable = true,
+                                    insertSpaces = true,
+                                    tabSize = 2,
+                                },
+                            },
+                        },
+                    },
                 },
 
                 -- This table contains config for all language servers that are *not* installed via Mason.
@@ -358,6 +378,7 @@ return {
                 "bash-language-server", -- Bash LSP
                 "air", -- R formatter
                 "r-languageserver", -- R language server
+                "json-lsp", -- JSON LSP
             })
 
             require("mason-tool-installer").setup {

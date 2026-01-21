@@ -45,6 +45,13 @@ local widths = {
     r = 88,
 }
 
+local indenting = vim.api.nvim_create_augroup("IndentByFiletype", { clear = true })
+local indents = {
+    json = { expandtab = true, shiftwidth = 2, tabstop = 2 },
+    jsonc = { expandtab = true, shiftwidth = 2, tabstop = 2 },
+    jsonl = { expandtab = true, shiftwidth = 2, tabstop = 2 },
+}
+
 vim.api.nvim_create_autocmd("FileType", {
     group = wrapping,
     pattern = vim.tbl_keys(widths),
@@ -53,6 +60,19 @@ vim.api.nvim_create_autocmd("FileType", {
         if tw then
             vim.opt_local.textwidth = tw
             vim.opt_local.formatoptions:append "t"
+        end
+    end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+    group = indenting,
+    pattern = vim.tbl_keys(indents),
+    callback = function(args)
+        local indent = indents[vim.bo[args.buf].filetype]
+        if indent then
+            vim.opt_local.expandtab = indent.expandtab
+            vim.opt_local.shiftwidth = indent.shiftwidth
+            vim.opt_local.tabstop = indent.tabstop
         end
     end,
 })

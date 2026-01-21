@@ -105,7 +105,16 @@ rtp:prepend(lazypath)
 --
 require("lazy").setup({
     -- General plugins
-    { "NMAC427/guess-indent.nvim", opts = {} }, -- Detect tabstop and shiftwidth automatically
+    {
+        "NMAC427/guess-indent.nvim",
+        opts = {
+            filetype_exclude = {
+                "json",
+                "jsonc",
+                "jsonl",
+            },
+        },
+    }, -- Detect tabstop and shiftwidth automatically
     { "tpope/vim-fugitive" }, -- Git configuration
     {
         "windwp/nvim-autopairs",
