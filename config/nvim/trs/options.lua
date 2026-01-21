@@ -17,6 +17,9 @@ vim.g.have_nerd_font = true
 vim.o.number = true
 vim.o.relativenumber = true
 
+-- Enable 24-bit RGB color in the terminal
+vim.o.termguicolors = true
+
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.o.mouse = "a"
 
@@ -54,6 +57,13 @@ vim.o.timeoutlen = 300
 vim.o.splitright = true
 vim.o.splitbelow = true
 
+-- Configure insert-mode completion behavior
+vim.o.completeopt = "menuone,noinsert,noselect"
+
+-- Configure command-line completion behavior
+vim.o.wildmode = "longest:full,full"
+vim.o.wildignorecase = true
+
 -- Sets how neovim will display certain whitespace characters in the editor.
 --   See `:help 'list'`
 --   and `:help 'listchars'`
@@ -72,6 +82,10 @@ vim.o.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.o.scrolloff = 10
+vim.o.sidescrolloff = 5
+
+-- Limit completion menu height
+vim.o.pumheight = 10
 
 -- If performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
 -- instead raise a dialog asking if you wish to save the current file(s)

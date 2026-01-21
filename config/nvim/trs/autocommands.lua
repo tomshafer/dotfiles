@@ -45,6 +45,11 @@ local widths = {
     r = 88,
 }
 
+local spelling = vim.api.nvim_create_augroup("SpellByFiletype", { clear = true })
+local spell_filetypes = { "markdown" }
+
+local makefiles = vim.api.nvim_create_augroup("MakefileTabs", { clear = true })
+
 local indenting = vim.api.nvim_create_augroup("IndentByFiletype", { clear = true })
 local indents = {
     json = { expandtab = true, shiftwidth = 2, tabstop = 2 },
@@ -61,6 +66,22 @@ vim.api.nvim_create_autocmd("FileType", {
             vim.opt_local.textwidth = tw
             vim.opt_local.formatoptions:append "t"
         end
+    end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+    group = spelling,
+    pattern = spell_filetypes,
+    callback = function()
+        vim.opt_local.spell = true
+    end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+    group = makefiles,
+    pattern = "make",
+    callback = function()
+        vim.opt_local.expandtab = false
     end,
 })
 
