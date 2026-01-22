@@ -150,8 +150,16 @@ zstyle ':vcs_info:*' stagedstr "+"          # Plus sign if any staged changes
 zstyle ':vcs_info:*' unstagedstr "*"        # Asterisk if any unstaged changes
 zstyle ':vcs_info:*' formats "%{$fg[magenta]%}%b%u%c%{$reset_color%}"
 
-precmd() { vcs_info }
-PROMPT=$'${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}%{$fg[blue]%}%${TRS_PS1_NUM_DIRS:-1}d%{$reset_color%} %(?..%{$fg[yellow]%})${TRS_PS1_ICON:-%(!.#.$)}%{$reset_color%} '
+precmd() {
+    local exit_status=$?
+    vcs_info
+    if [[ $exit_status -ne 0 && $exit_status -ne 130 ]]; then
+        TRS_PS1_STATUS_COLOR="%{$fg[yellow]%}"
+    else
+        TRS_PS1_STATUS_COLOR=""
+    fi
+}
+PROMPT=$'${TRS_PS1_LABEL:+"$TRS_PS1_LABEL "}%{$fg[blue]%}%${TRS_PS1_NUM_DIRS:-1}d%{$reset_color%} ${TRS_PS1_STATUS_COLOR}${TRS_PS1_ICON:-%(!.#.$)}%{$reset_color%} '
 RPROMPT='$vcs_info_msg_0_'
 
 # Local overrides ---------------------------------------------------
