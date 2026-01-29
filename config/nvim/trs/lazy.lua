@@ -112,6 +112,15 @@ require("lazy").setup({
                 "json",
                 "jsonc",
                 "jsonl",
+                "make",
+                "sh",
+                "bash",
+                "zsh",
+                "ksh",
+            },
+            -- Keep tabs disabled globally; allow filetype-specific overrides.
+            on_tab_options = {
+                expandtab = true,
             },
         },
     }, -- Detect tabstop and shiftwidth automatically

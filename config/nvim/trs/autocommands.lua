@@ -49,12 +49,17 @@ local spelling = vim.api.nvim_create_augroup("SpellByFiletype", { clear = true }
 local spell_filetypes = { "markdown" }
 
 local makefiles = vim.api.nvim_create_augroup("MakefileTabs", { clear = true })
+local tabbed_filetypes = { "make" }
 
 local indenting = vim.api.nvim_create_augroup("IndentByFiletype", { clear = true })
 local indents = {
-    json = { expandtab = true, shiftwidth = 2, tabstop = 2 },
-    jsonc = { expandtab = true, shiftwidth = 2, tabstop = 2 },
-    jsonl = { expandtab = true, shiftwidth = 2, tabstop = 2 },
+    json = { expandtab = true, shiftwidth = 2, tabstop = 2, softtabstop = 2 },
+    jsonc = { expandtab = true, shiftwidth = 2, tabstop = 2, softtabstop = 2 },
+    jsonl = { expandtab = true, shiftwidth = 2, tabstop = 2, softtabstop = 2 },
+    sh = { expandtab = true, shiftwidth = 2, tabstop = 2, softtabstop = 2 },
+    bash = { expandtab = true, shiftwidth = 2, tabstop = 2, softtabstop = 2 },
+    zsh = { expandtab = true, shiftwidth = 2, tabstop = 2, softtabstop = 2 },
+    ksh = { expandtab = true, shiftwidth = 2, tabstop = 2, softtabstop = 2 },
 }
 
 vim.api.nvim_create_autocmd("FileType", {
@@ -79,7 +84,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 vim.api.nvim_create_autocmd("FileType", {
     group = makefiles,
-    pattern = "make",
+    pattern = tabbed_filetypes,
     callback = function()
         vim.opt_local.expandtab = false
     end,
@@ -94,6 +99,9 @@ vim.api.nvim_create_autocmd("FileType", {
             vim.opt_local.expandtab = indent.expandtab
             vim.opt_local.shiftwidth = indent.shiftwidth
             vim.opt_local.tabstop = indent.tabstop
+            if indent.softtabstop ~= nil then
+                vim.opt_local.softtabstop = indent.softtabstop
+            end
         end
     end,
 })

@@ -101,3 +101,4 @@ vim.opt.formatoptions:append "tcq"
 
 -- Indent
 vim.opt.autoindent = true
+vim.opt.expandtab = true
