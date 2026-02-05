@@ -302,13 +302,13 @@ ask_conflict_action() {
 
     local response
     while true; do
-        echo -n "$prompt (s=skip, b=backup, o=overwrite): "
+        echo -n "$prompt (s=skip, b=backup, o=overwrite): " >&2
         read -r response
         case "$response" in
             [Ss]*) echo "skip"; return 0 ;;
             [Bb]*) echo "backup"; return 0 ;;
             [Oo]*) echo "overwrite"; return 0 ;;
-            * ) echo "Please answer s, b, or o." ;;
+            * ) echo "Please answer s, b, or o." >&2 ;;
         esac
     done
 }
