@@ -1,5 +1,10 @@
 # Dotfiles
 
+## Requirements
+
+- **Shell configuration:** Bash 3.2+ or Zsh
+- **Utility scripts (`bin/`):** Bash 3.2+ (uses `[[ ]]` and similar features)
+
 ## Configuration flags
 
 - `TRS_PS1_LABEL`: Label in front of the prompt

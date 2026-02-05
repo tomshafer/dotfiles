@@ -11,7 +11,7 @@ elif [[ -n $BASH_VERSION ]]; then
     DOTFILES_SHELL="bash"
 else
     echo "Out of scope shell: \"$SHELL\"" >&2
-    exit 1
+    return 1
 fi
 
 # uv -------------------------------------------------------
@@ -79,7 +79,6 @@ if [[ -d "$HOME/.nvm" ]]; then
     export NVM_AUTO_USE=0
 
     # Make default node binaries available before nvm lazy-loads.
-    # Generated with GPT 5.2 and Codex
     if [[ -s "$NVM_DIR/alias/default" ]]; then
         __nvm_resolve_default() {
             local target lts_alias lts_star
@@ -158,9 +157,8 @@ fi
 
 # LM Studio ------------------------------------------------
 
-if [[ -d "$HOME/.lmstudio" ]]; then
-    PATH="$PATH:$HOME/.lmstudio/bin"
-    export PATH
+if [[ -d "$HOME/.lmstudio/bin" ]]; then
+    add_to_path "$HOME/.lmstudio/bin"
 fi
 
 unset DOTFILES_SHELL

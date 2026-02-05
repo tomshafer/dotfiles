@@ -1,5 +1,4 @@
 # shellcheck shell=bash
-# Generated with Codex
 
 # Resolve a path without depending on Python.
 resolve_realpath() {

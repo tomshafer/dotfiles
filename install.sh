@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Dotfiles installer
-# Compatible with Bash 3.x
+# Compatible with Bash 3.2+ (macOS stock bash, modern Linux)
 # Installs dotfiles by creating appropriate symlinks and shell integration
 
 set -euo pipefail
