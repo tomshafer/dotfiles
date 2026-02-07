@@ -75,12 +75,30 @@
     # Globally ignore certain things
     excludesfile = ~/.config/git/ignore
 
+    # Use 'delta' if exists
+    pager = "sh -c 'command -v delta >/dev/null && delta || less'"
+
+[delta]
+    # Dark theme
+    light = false
+
+    # Nice options
+    navigate = true          # n/N to jump between files
+    line-numbers = true      # recommended
+    side-by-side = false     # Two-column if I want
+    hyperlinks = true        # make file paths clickable (if terminal supports it)
+    
+    # Behavior tweaks
+    max-line-length = 0      # don't truncate long lines (default wraps them)
+
+    syntax-theme = tokyo-night
+
 [diff]
     # Use a better diffing algorithm
     algorithm = histogram
 
-    # Distinguish between changes and moves
-    colorMoved = plain
+    # Color moved lines
+    colorMoved = default
 
     # Mnemonics for index vs. commit vs. working (not a vs. b)
     mnemonicPrefix = true
@@ -113,9 +131,14 @@
     # Use "main" as default branch
     defaultbranch = main
 
+[interactive]
+    # Use delta for interactive
+    diffFilter = sh -c 'command -v delta >/dev/null && delta --color-only || cat'
+
 [merge]
     # Include summaries of merged commits in newly created merge commit messages
     log = true
+
     # Better conflict context
     conflictstyle = zdiff3
 
