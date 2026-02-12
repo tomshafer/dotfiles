@@ -127,9 +127,17 @@ endif
 " -----------------------------------------------------------------------------
 " Plugins (vim-plug)
 " -----------------------------------------------------------------------------
-" Install vim-plug if needed: https://github.com/junegunn/vim-plug
-"   curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-"     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+" Auto-install vim-plug if missing
+let s:plug_path = expand('~/.vim/autoload/plug.vim')
+if empty(glob(s:plug_path))
+  silent execute '!curl -fLo ' . s:plug_path . ' --create-dirs'
+        \ . ' https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
+if !filereadable(s:plug_path)
+  finish
+endif
 
 call plug#begin('~/.vim/plugged')
 
@@ -168,6 +176,11 @@ call plug#end()
 " -----------------------------------------------------------------------------
 " Plugin configuration and integrations
 " -----------------------------------------------------------------------------
+
+" Skip plugin config if plugins haven't been installed yet
+if empty(glob('~/.vim/plugged/*/'))
+  finish
+endif
 
 " Colorscheme setup
 let g:tokyonight_style = 'night'
