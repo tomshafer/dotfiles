@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Paste text from the clipboard.
+# From https://evanhahn.com/scripts-i-wrote-that-i-use-all-the-time/
+
+set -euo pipefail
+
+if command -v pbpaste >/dev/null 2>&1; then
+  exec pbpaste
+elif command -v wl-paste >/dev/null 2>&1; then
+  exec wl-paste
+elif command -v xclip >/dev/null 2>&1; then
+  exec xclip -selection clipboard -o
+elif command -v xsel >/dev/null 2>&1; then
+  exec xsel --clipboard --output
+else
+  echo >&2 "Clipboard functionality is unavailable."
+fi

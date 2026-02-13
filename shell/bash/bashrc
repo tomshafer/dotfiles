@@ -144,12 +144,21 @@ chmod 600 "$HISTFILE" 2>/dev/null
 
 # Prompt ---------------------------------------------------
 
-blue=$(tput setaf 4)
-magenta=$(tput setaf 5)
-yellow=$(tput setaf 3)
-yellow_bg=$(tput setab 3)
-black=$(tput setaf 0)
-reset=$(tput sgr0)
+if command -v tput >/dev/null 2>&1; then
+    blue=$(tput setaf 4 2>/dev/null || true)
+    magenta=$(tput setaf 5 2>/dev/null || true)
+    yellow=$(tput setaf 3 2>/dev/null || true)
+    yellow_bg=$(tput setab 3 2>/dev/null || true)
+    black=$(tput setaf 0 2>/dev/null || true)
+    reset=$(tput sgr0 2>/dev/null || true)
+else
+    blue=""
+    magenta=""
+    yellow=""
+    yellow_bg=""
+    black=""
+    reset=""
+fi
 
 export PROMPT_DIRTRIM="${TRS_PS1_NUM_DIRS:-1}"
 

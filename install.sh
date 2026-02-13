@@ -426,7 +426,25 @@ is_correct_symlink() {
     local link_path="$1"
     local target_path="$2"
     
-    [ -L "$link_path" ] && [ "$(readlink "$link_path")" = "$target_path" ]
+    if [ ! -L "$link_path" ]; then
+        return 1
+    fi
+
+    local link_target
+    link_target="$(readlink "$link_path")"
+
+    # Direct match (absolute or relative)
+    if [ "$link_target" = "$target_path" ]; then
+        return 0
+    fi
+
+    # Resolve both sides to handle relative symlinks
+    local link_dir link_abs target_abs
+    link_dir="$(cd -P "$(dirname "$link_path")" 2>/dev/null && pwd -P)" || return 1
+    link_abs="$link_dir/$link_target"
+    target_abs="$(cd -P "$(dirname "$target_path")" 2>/dev/null && pwd -P)/$(basename "$target_path")" || return 1
+
+    [ "$link_abs" = "$target_abs" ]
 }
 
 ######################################################################

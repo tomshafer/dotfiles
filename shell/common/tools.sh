@@ -55,9 +55,32 @@ fi
 
 # https://mike.place/2017/fzf-fd/
 if command -v fd >/dev/null; then
-    export FZF_DEFAULT_COMMAND="fd . $HOME"
-    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-    export FZF_ALT_C_COMMAND="fd -t d . $HOME"
+    fd_excludes=(
+        -E .git
+        -E node_modules
+        -E .venv
+        -E __pycache__
+        -E .ruff_cache
+        -E .mypy_cache
+        -E .pytest_cache
+        -E .tox
+        -E .nox
+        -E .Rproj.user
+        -E .renv
+        -E .Rhistory
+        -E .RData
+        -E .Ruserdata
+    )
+    if [[ -z ${FZF_DEFAULT_COMMAND-} ]]; then
+        export FZF_DEFAULT_COMMAND="fd . $HOME -H ${fd_excludes[*]}"
+    fi
+    if [[ -z ${FZF_CTRL_T_COMMAND-} ]]; then
+        export FZF_CTRL_T_COMMAND="fd . -H ${fd_excludes[*]}"
+    fi
+    if [[ -z ${FZF_ALT_C_COMMAND-} ]]; then
+        export FZF_ALT_C_COMMAND="fd -t d . -H ${fd_excludes[*]}"
+    fi
+    unset fd_excludes
 fi
 
 # zoxide ---------------------------------------------------

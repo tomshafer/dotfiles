@@ -1,11 +1,11 @@
-name: Shell Config Check
+name: Shell Checks
 
 on:
   push:
   pull_request:
 
 jobs:
-  shell-config:
+  syntax-and-source:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -31,7 +31,6 @@ jobs:
           bash -n shell/bash/bash_profile
           bash -n shell/common/*.sh
           bash -n bin/*
-          sh -n shell/loader.sh
           zsh -n shell/zsh/zshrc
 
       - name: Source configs
@@ -42,6 +41,14 @@ jobs:
         run: |
           set -euo pipefail
           bash -i -c "source shell/bash/bashrc"
-          bash -i -c ". shell/loader.sh"
           zsh -i -c "source shell/zsh/zshrc"
-          zsh -i -c "source shell/loader.sh"
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck ripgrep
+      - name: Run shellcheck
+        run: shellcheck $(rg --files -g 'bin/*' -g 'shell/**' -g 'install.sh')

@@ -33,6 +33,10 @@ main() {
   if [[ "$ptype" == "-r" ]]; then
     echo >&2 "TODO: Create R project"
   elif [[ "$ptype" == "-p" ]]; then
+    if ! command -v uv >/dev/null 2>&1; then
+      echo >&2 "Missing dependency: uv (https://github.com/astral-sh/uv)"
+      exit 1
+    fi
     uv init "$@" "$pwdir"
     cd "$pwdir"
     uv add --dev --no-sync ruff ty pytest
