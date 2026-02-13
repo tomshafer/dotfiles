@@ -1,4 +1,4 @@
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC1091,SC1090,SC2296,SC2206,SC2128,SC2154,SC1087,SC2034,SC2016
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/../common/realpath.sh"
@@ -33,7 +33,7 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'  # No case
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colors
 zstyle ':completion:*' menu select                      # Menu
 zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path $HOME/.zsh/cache
+zstyle ':completion:*' cache-path "$HOME"/.zsh/cache
 
 # Homebrew completions
 if [[ -n $HOMEBREW_PREFIX ]]; then
@@ -54,7 +54,7 @@ fi
 
 # Local completions
 for d in ~/.local/share/zsh/site-functions ~/.zfunc; do
-  [[ -d $d ]] && fpath=($d $fpath)
+  [[ -d $d ]] && fpath=("$d" "${fpath[@]}")
 done
 
 autoload -Uz compinit  # Completion
@@ -68,11 +68,11 @@ cache_=""
 if zmodload -F zsh/stat b:zstat 2>/dev/null && zmodload -F zsh/datetime b:strftime 2>/dev/null; then
   today_=$(strftime %j $EPOCHSECONDS)
   if [[ -s $ZSH_COMPDUMP ]] && zstat -A zstat_mtime +mtime -- "$ZSH_COMPDUMP" 2>/dev/null; then
-    cache_=$(strftime %j ${zstat_mtime[1]})
+    cache_=$(strftime %j "${zstat_mtime[1]}")
   fi
 fi
 
-if [[ -n $cache_ && $today_ == $cache_ ]]; then
+if [[ -n $cache_ && $today_ == "$cache_" ]]; then
   compinit -d "$ZSH_COMPDUMP"
 else
   compinit -C -d "$ZSH_COMPDUMP"

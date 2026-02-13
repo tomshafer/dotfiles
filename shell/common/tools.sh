@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# shellcheck disable=SC1090
+# shellcheck disable=SC1090,SC1091,SC2012
 
 # Set up additional tools, if available.
 # These depend on completion being available.
