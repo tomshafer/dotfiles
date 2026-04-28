@@ -40,6 +40,7 @@ declare -a MISSING_SOURCES=()
 # Types: config (goes to ~/.config/), home (goes to ~/), shell (special handling)
 declare -a FILE_MAPPINGS=(
     "bat/config:bat/config:config"
+    "bat/themes:bat/themes:config"
     "git/config:git/config:config"
     "git/ignore:git/ignore:config"
     "lsd/colors.yml:lsd/colors.yml:config"
@@ -615,6 +616,33 @@ install_config_files() {
 }
 
 ######################################################################
+# Rebuild bat's cache so custom themes are available after linking.
+# Globals:
+#   DRY_RUN - If true, simulates cache rebuild
+# Arguments:
+#   None
+# Returns:
+#   None
+######################################################################
+rebuild_bat_cache() {
+    if ! command -v bat >/dev/null 2>&1; then
+        return 0
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        print_status "[DRY RUN] Would rebuild bat theme cache"
+        return 0
+    fi
+
+    print_status "Rebuilding bat theme cache"
+    if bat cache --build >/dev/null; then
+        print_success "Rebuilt bat theme cache"
+    else
+        print_warning "bat cache rebuild failed; run manually: bat cache --build"
+    fi
+}
+
+######################################################################
 # Safely create shell integration file with source line.
 # Checks for existing correct configuration, handles conflicts,
 # and creates new file with proper source line for dotfiles integration.
@@ -764,6 +792,7 @@ main() {
     
     # Install configuration files
     install_config_files
+    rebuild_bat_cache
     
     echo ""
     
