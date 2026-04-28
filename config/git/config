@@ -69,8 +69,10 @@
     # https://git-scm.com/docs/git-update-index#_untracked_cache
     untrackedCache = true
 
-    # Monitor for changes in repos to update the cache
-    fsmonitor = true
+    # fsmonitor can speed up status in large repos, but enabling it globally
+    # makes every repo depend on a healthy fsmonitor daemon. Prefer enabling
+    # it per repository when it is known to work:
+    # git config core.fsmonitor true
 
     # Globally ignore certain things
     excludesfile = ~/.config/git/ignore
