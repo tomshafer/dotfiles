@@ -17,6 +17,7 @@ NC='\033[0m' # No Color
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOTFILES_DIR="$SCRIPT_DIR"
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 
 # Lock file for concurrent execution protection
 LOCK_FILE="$HOME/.dotfiles-install.lock"
@@ -39,7 +40,7 @@ declare -a MISSING_SOURCES=()
 
 # File mapping configuration
 # Format: "source_path:target_path:type"
-# Types: config (goes to ~/.config/), home (goes to ~/), shell (special handling)
+# Types: config (goes to $XDG_CONFIG_HOME or ~/.config), home (goes to ~/), shell (special handling)
 declare -a FILE_MAPPINGS=(
     "bat/config:bat/config:config"
     "bat/themes:bat/themes:config"
@@ -583,6 +584,7 @@ create_symlink() {
 # Maps file types to their appropriate installation directories.
 # Globals:
 #   HOME - User's home directory
+#   CONFIG_HOME - User's config directory
 # Arguments:
 #   $1 - Source path (unused, kept for compatibility)
 #   $2 - Target path relative to type directory
@@ -599,7 +601,7 @@ resolve_target_path() {
     
     case "$type" in
         "config")
-            echo "$HOME/.config/$target_path"
+            echo "$CONFIG_HOME/$target_path"
             ;;
         "home")
             echo "$HOME/$target_path"
@@ -654,6 +656,54 @@ install_config_files() {
     done
     
     print_success "Configuration files installation complete"
+}
+
+######################################################################
+# Install utility scripts by creating symlinks in ~/bin.
+# Processes every file in the repository's bin directory.
+# Globals:
+#   DOTFILES_DIR - Source directory for dotfiles
+#   HOME - User's home directory
+# Arguments:
+#   None
+# Returns:
+#   None (errors are logged but don't stop processing)
+######################################################################
+install_bin_files() {
+    print_status "Installing utility scripts..."
+
+    if [ ! -d "$DOTFILES_DIR/bin" ]; then
+        print_warning "Source directory not found: $DOTFILES_DIR/bin"
+        record_missing_source "$DOTFILES_DIR/bin"
+        return 0
+    fi
+
+    local found=false
+    local source_file target_file
+
+    for source_file in "$DOTFILES_DIR"/bin/*; do
+        if [ ! -e "$source_file" ]; then
+            continue
+        fi
+        if [ ! -f "$source_file" ]; then
+            continue
+        fi
+
+        found=true
+        target_file="$HOME/bin/$(basename "$source_file")"
+
+        print_status "Processing: bin/$(basename "$source_file")"
+
+        if ! create_symlink "$source_file" "$target_file"; then
+            print_error "Failed to create symlink for $source_file"
+        fi
+    done
+
+    if [ "$found" = false ]; then
+        print_warning "No utility scripts found in: $DOTFILES_DIR/bin"
+    fi
+
+    print_success "Utility scripts installation complete"
 }
 
 ######################################################################
@@ -834,6 +884,11 @@ main() {
     # Install configuration files
     install_config_files
     rebuild_bat_cache
+
+    echo ""
+
+    # Install utility scripts
+    install_bin_files
     
     echo ""
     
