@@ -112,7 +112,8 @@ serve() {
 cdf() {
   command -v fzf >/dev/null || return 1
   local dir
-  dir="$(fd -t d . "${1:-.}" -H 2>/dev/null | fzf)" && cd "$dir"
+  dir="$(fd -t d . "${1:-.}" -H 2>/dev/null | fzf)"
+  cd "$dir" || exit
 }
 
 ######################################################################
@@ -121,5 +122,6 @@ cdf() {
 vf() {
   command -v fzf >/dev/null || return 1
   local file
-  file="$(fd -t f . "${1:-.}" -H 2>/dev/null | fzf)" && "${EDITOR:-vi}" "$file"
+  file="$(fd -t f . "${1:-.}" -H 2>/dev/null | fzf)"
+  "${EDITOR:-vi}" "$file"
 }
