@@ -298,7 +298,7 @@ ask_conflict_action() {
     local prompt="$1"
 
     if [ "$DRY_RUN" = true ]; then
-        print_status "[DRY RUN] Would prompt: $prompt (s/b/o)"
+        print_status "[DRY RUN] Would prompt: $prompt (s/b/o)" >&2
         echo "skip"
         return 0
     fi
