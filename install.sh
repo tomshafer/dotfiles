@@ -26,6 +26,8 @@ BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
 # Global flags
 DRY_RUN=false
+ASSUME_YES=false
+CONFLICT_ACTION=""
 
 # Summary counters
 LINKED_COUNT=0
@@ -161,6 +163,9 @@ USAGE:
 OPTIONS:
     --help, -h      Show this help message
     --dry-run, -n   Show what would be done without making changes
+    --yes, -y       Do not prompt; use the default conflict action
+    --conflict-action ACTION
+                   Non-interactive conflict behavior: skip, backup, overwrite
 
 DESCRIPTION:
     Installs dotfiles by creating symlinks for configuration files and 
@@ -170,6 +175,7 @@ DESCRIPTION:
 EXAMPLES:
     $0              # Install dotfiles
     $0 --dry-run    # Preview what would be installed
+    $0 --yes        # Install without prompting; backs up conflicts
     $0 --help       # Show this help
 
 EOF
@@ -197,6 +203,27 @@ parse_arguments() {
                 DRY_RUN=true
                 print_status "DRY RUN MODE: No changes will be made"
                 shift
+                ;;
+            --yes|-y)
+                ASSUME_YES=true
+                shift
+                ;;
+            --conflict-action)
+                if [[ $# -lt 2 ]]; then
+                    print_error "--conflict-action requires an argument"
+                    exit 1
+                fi
+                case "$2" in
+                    skip|backup|overwrite)
+                        CONFLICT_ACTION="$2"
+                        ASSUME_YES=true
+                        shift 2
+                        ;;
+                    *)
+                        print_error "--conflict-action must be one of: skip, backup, overwrite"
+                        exit 1
+                        ;;
+                esac
                 ;;
             *)
                 print_error "Unknown option: $1"
@@ -271,6 +298,11 @@ ask_confirmation() {
         print_status "[DRY RUN] Would prompt: $prompt (y/n)"
         return 0
     fi
+
+    if [ "$ASSUME_YES" = true ]; then
+        print_status "Assuming yes: $prompt"
+        return 0
+    fi
     
     local response
     while true; do
@@ -299,7 +331,16 @@ ask_conflict_action() {
 
     if [ "$DRY_RUN" = true ]; then
         print_status "[DRY RUN] Would prompt: $prompt (s/b/o)" >&2
-        echo "skip"
+        if [ "$ASSUME_YES" = true ]; then
+            echo "${CONFLICT_ACTION:-backup}"
+        else
+            echo "${CONFLICT_ACTION:-skip}"
+        fi
+        return 0
+    fi
+
+    if [ "$ASSUME_YES" = true ]; then
+        echo "${CONFLICT_ACTION:-backup}"
         return 0
     fi
 
