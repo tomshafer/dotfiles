@@ -14,6 +14,20 @@ mkcd() {
 }
 
 ######################################################################
+# Run `mktemp -d` and `cd` together
+# Arguments:
+#   Directory name to create and move to.
+# Outputs:
+#   Writes `mkdir` call to stderr.
+######################################################################
+mktmp() {
+  [ $# != 1 ] && echo >&2 "Usage: mktmp" && return 1
+  local dir
+  dir=$(mktemp -d)
+  echo >&2 "mktemp -d \"$dir\"" && cd "$dir" || return
+}
+
+######################################################################
 # Launch a new VS Code window
 # Arguments:
 #   Directory or file to open in a new window.
@@ -22,7 +36,7 @@ if command -v code >/dev/null; then
   cn() {
     local target="${1:-.}"
     code -n "$target"
-  }  
+  }
 fi
 
 ######################################################################
@@ -64,4 +78,48 @@ venv() {
     here="$parent"
   done
   echo >&2 "No venv was located"
+}
+
+######################################################################
+# Change to a Git repo's root directory
+######################################################################
+croot() {
+  local root
+  root="$(git rev-parse --show-toplevel 2>/dev/null)" || return
+  cd "$root" || return
+}
+
+######################################################################
+# Serve a local directory with Python's built-in HTTP server
+# Arguments:
+#   Port number.
+######################################################################
+serve() {
+  local port="${1:-8000}"
+
+  if command -v uv >/dev/null 2>&1; then
+    uv run --no-project python -m http.server "$port"
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -m http.server "$port"
+  else
+    python -m http.server "$port"
+  fi
+}
+
+######################################################################
+# `cd` with fuzzy finder
+######################################################################
+cdf() {
+  command -v fzf >/dev/null || return 1
+  local dir
+  dir="$(fd -t d . "${1:-.}" -H 2>/dev/null | fzf)" && cd "$dir"
+}
+
+######################################################################
+# `command -v` with fuzzy finder
+######################################################################
+vf() {
+  command -v fzf >/dev/null || return 1
+  local file
+  file="$(fd -t f . "${1:-.}" -H 2>/dev/null | fzf)" && "${EDITOR:-vi}" "$file"
 }

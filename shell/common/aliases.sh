@@ -5,7 +5,7 @@
 
 # I've seen these on various remote systems
 for alias in ls ll l la lt lr xx l2; do
-    [[ "$(command -v "$alias" | cut -d ' ' -f 1)" = "alias" ]] && unalias "$alias"
+  [[ "$(command -v "$alias" | cut -d ' ' -f 1)" == "alias" ]] && unalias "$alias"
 done
 unset alias
 
@@ -18,15 +18,14 @@ alias lr="l -rt"
 
 # Prefer lsd, then ls
 if command -v lsd >/dev/null 2>&1; then
-    alias ls="lsd --classify"
+  alias ls="lsd --classify"
 else
-    if command ls --color=auto >/dev/null 2>&1; then
-        alias ls="command ls -Fh --color=auto"
-    else
-        alias ls="command ls -FGh"
-    fi
+  if command ls --color=auto >/dev/null 2>&1; then
+    alias ls="command ls -Fh --color=auto"
+  else
+    alias ls="command ls -FGh"
+  fi
 fi
-
 
 # Navigation ---------------------------------------------------------
 
@@ -42,24 +41,43 @@ alias mkd="mkcd"
 
 # Fix systems where `bat` is called `batcat`
 if ! command -v bat >/dev/null && command -v batcat >/dev/null; then
-    alias bat='batcat'
+  alias bat='batcat'
 fi
+
+# Alias `cat` to `bat` if we have it
+if command -v bat >/dev/null 2>&1; then
+  alias cat='bat -p'
+fi
+
+# Reload the shell
+alias reload='exec "$SHELL" -l'
+
+# Use color with grep
+alias grep='grep --color=auto'
+
+# ripgrep in case-insensitive mode
+if command -v rg >/dev/null 2>&1; then
+  alias rgi='rg -i'
+fi
+
+# Pretty print paths
+alias path='printf "%s\n" ${PATH//:/\\n}'
 
 # macOS specific -----------------------------------------------------
 
-if [[ "$(uname -s)" = "Darwin" ]]; then
-    # Open applications from the command line
-    alias o='open'
-    alias oo='o .'
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  # Open applications from the command line
+  alias o='open'
+  alias oo='o .'
 
-    # Open various macOS-specific applications
-    for appname in RStudio Skim; do
-        apppath="/Applications/${appname}.app"
+  # Open various macOS-specific applications
+  for appname in RStudio Skim; do
+    apppath="/Applications/${appname}.app"
 
-        if [[ -e $apppath ]]; then
-            lowername=$(echo "$appname" | tr '[:upper:]' '[:lower:]')
-            eval "alias $lowername='open -a \"$apppath\"'"
-        fi
-    done
-    unset appname apppath lowername
+    if [[ -e $apppath ]]; then
+      lowername=$(echo "$appname" | tr '[:upper:]' '[:lower:]')
+      eval "alias $lowername='open -a \"$apppath\"'"
+    fi
+  done
+  unset appname apppath lowername
 fi

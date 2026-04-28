@@ -38,6 +38,22 @@
 
     au = add -u
 
+    sw = switch
+    sc = switch --create
+
+    rb = rebase
+    rbi = rebase --interactive
+
+    amend = commit --amend --no-edit
+
+    unstage = restore --staged
+    discard = restore
+
+    last = show --stat --oneline HEAD
+    root = rev-parse --show-toplevel
+
+    default-branch = "!git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'"
+
 [branch]
     # Show most recently changed branches first
     sort = -committerdate
