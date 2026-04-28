@@ -24,8 +24,8 @@
     whoami = config user.email
 
     # GitHub PR and GitLab MR: https://stackoverflow.com/a/30584951
-    pr = "!sh -c \"git fetch ${2:-origin} pull/$1/head:pr-${2:-origin}-$1 && git checkout pr-${2:-origin}-$1\""
-    mr = "!sh -c \"git fetch ${2:-origin} merge-requests/$1/head:mr-${2:-origin}-$1 && git checkout mr-${2:-origin}-$1\""
+    pr = "!sh -c 'test -n \"$1\" || { echo \"usage: git pr PR_NUMBER [REMOTE]\" >&2; exit 2; }; remote=${2:-origin}; branch=pr-$remote-$1; git fetch \"$remote\" \"pull/$1/head:$branch\" && git checkout \"$branch\"' -"
+    mr = "!sh -c 'test -n \"$1\" || { echo \"usage: git mr MR_NUMBER [REMOTE]\" >&2; exit 2; }; remote=${2:-origin}; branch=mr-$remote-$1; git fetch \"$remote\" \"merge-requests/$1/head:$branch\" && git checkout \"$branch\"' -"
 
     co = checkout
 
