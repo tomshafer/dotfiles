@@ -14,4 +14,5 @@ elif command -v xsel >/dev/null 2>&1; then
   exec xsel --clipboard --output
 else
   echo >&2 "Clipboard functionality is unavailable."
+  exit 1
 fi
