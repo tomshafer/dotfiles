@@ -45,6 +45,8 @@ declare -a FILE_MAPPINGS=(
     "lsd/colors.yml:lsd/colors.yml:config"
     "lsd/config.yml:lsd/config.yml:config"
     "dotfiles/ssh/config:dotfiles/ssh/config:config"
+    "nvim/init.lua:nvim/init.lua:config"
+    "nvim/lua/trs:nvim/lua/trs:config"
     "vim/vimrc:.vimrc:home"
     "screen/screenrc:.screenrc:home"
     "conda/condarc:.condarc:home"
@@ -599,7 +601,7 @@ install_config_files() {
         
         print_status "Processing ($count/$total): $source_path"
         
-        if [ -f "$source_file" ]; then
+        if [ -e "$source_file" ]; then
             if ! create_symlink "$source_file" "$target_file"; then
                 print_error "Failed to create symlink for $source_path"
             fi
