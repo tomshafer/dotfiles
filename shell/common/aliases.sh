@@ -46,7 +46,7 @@ fi
 
 # Alias `cat` to `bat` if we have it
 if command -v bat >/dev/null 2>&1; then
-  alias cat='bat -p'
+  alias cat='bat -pp'
 fi
 
 # Reload the shell
