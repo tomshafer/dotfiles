@@ -21,7 +21,7 @@ mkcd() {
 #   Writes `mkdir` call to stderr.
 ######################################################################
 mktmp() {
-  [ $# != 1 ] && echo >&2 "Usage: mktmp" && return 1
+  [ $# != 0 ] && echo >&2 "Usage: mktmp" && return 1
   local dir
   dir=$(mktemp -d)
   echo >&2 "mktemp -d \"$dir\"" && cd "$dir" || return
