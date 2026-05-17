@@ -10,7 +10,7 @@ return {
     branch = "main",
     lazy = false,
     build = ":TSUpdate",
-    main = "nvim-treesitter.configs", -- Sets main module to use for opts
+    main = "nvim-treesitter.config", -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
         ensure_installed = {
