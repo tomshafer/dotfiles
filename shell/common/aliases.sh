@@ -39,6 +39,14 @@ alias ...="cd ../.."
 alias g="git"
 alias mkd="mkcd"
 
+# Editors
+if command -v nvim >/dev/null 2>&1; then
+  alias vim='nvim'
+fi
+if command -v vim >/dev/null 2>&1; then
+  alias vi='vim'
+fi
+
 # Fix systems where `bat` is called `batcat`
 if ! command -v bat >/dev/null && command -v batcat >/dev/null; then
   alias bat='batcat'

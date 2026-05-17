@@ -16,8 +16,12 @@ end
 
 if is_light_mode() then
     vim.o.background = "light"
-    vim.cmd.colorscheme "rose-pine-dawn"
+    if not pcall(vim.cmd.colorscheme, "rose-pine-dawn") then
+        vim.cmd.colorscheme "default"
+    end
 else
     vim.o.background = "dark"
-    vim.cmd.colorscheme "tokyonight"
+    if not pcall(vim.cmd.colorscheme, "tokyonight") then
+        vim.cmd.colorscheme "habamax"
+    end
 end

@@ -28,7 +28,7 @@ return {
             "r",
         },
         -- Autoinstall languages that are not installed
-        auto_install = true,
+        auto_install = vim.env.DOTFILES_EDITOR_INSTALL == "1",
         highlight = {
             enable = true,
             -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.

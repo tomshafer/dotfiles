@@ -33,9 +33,6 @@ source "$DOTFILES_DIR/shell/common/functions.sh"
 
 # Completion -----------------------------------------------
 
-# Custom completions for common directories
-complete -d cd pushd rmdir
-
 # Homebrew completions
 if [[ -n ${HOMEBREW_PREFIX-} ]]; then
     if [[ -r $HOMEBREW_PREFIX/etc/profile.d/bash_completion.sh ]]; then
@@ -46,28 +43,6 @@ if [[ -n ${HOMEBREW_PREFIX-} ]]; then
         source "$HOMEBREW_PREFIX/etc/bash_completion.d/brew"
     fi
 fi
-
-# SSH hostname completion from known_hosts and config
-_ssh_hosts() {
-    local hosts=""
-    if [[ -f ~/.ssh/config ]]; then
-        hosts=$(awk '/^[[:space:]]*Host[[:space:]]/ {
-            for(i=2; i<=NF; i++)
-                if($i !~ /[*?!]/ && $i != "")
-                    print $i
-        }' ~/.ssh/config)
-    fi
-
-    COMPREPLY=()
-    local completions
-    completions=$(compgen -W "$hosts" -- "${COMP_WORDS[COMP_CWORD]}")
-
-    local IFS=$'\n'
-    for completion in $completions; do
-        COMPREPLY+=("$completion")
-    done
-}
-complete -F _ssh_hosts ssh scp sftp
 
 # Git completion
 if ! declare -F _git >/dev/null 2>&1; then
@@ -101,10 +76,43 @@ unset git_prompt
 
 source "$DOTFILES_DIR/shell/common/tools.sh"
 
+# Completion fallbacks --------------------------------------
+
+for command in cd pushd rmdir; do
+    complete -p "$command" >/dev/null 2>&1 || complete -d "$command"
+done
+unset command
+
+_ssh_hosts() {
+    local hosts=""
+    if [[ -f ~/.ssh/config ]]; then
+        hosts=$(awk '/^[[:space:]]*Host[[:space:]]/ {
+            for(i=2; i<=NF; i++)
+                if($i !~ /[*?!]/ && $i != "")
+                    print $i
+        }' ~/.ssh/config)
+    fi
+
+    COMPREPLY=()
+    local completions
+    completions=$(compgen -W "$hosts" -- "${COMP_WORDS[COMP_CWORD]}")
+
+    local IFS=$'\n'
+    for completion in $completions; do
+        COMPREPLY+=("$completion")
+    done
+}
+for command in ssh scp sftp; do
+    complete -p "$command" >/dev/null 2>&1 || complete -F _ssh_hosts "$command"
+done
+unset command
+
 # History configuration ------------------------------------
 
 shopt -s histappend
 shopt -s histverify
+shopt -s cmdhist
+shopt -s lithist 2>/dev/null
 
 export HISTFILE="$HOME/.bash_history"
 

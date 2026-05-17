@@ -127,15 +127,25 @@ endif
 " -----------------------------------------------------------------------------
 " Plugins (vim-plug)
 " -----------------------------------------------------------------------------
-" Auto-install vim-plug if missing
+" Load installed plugins, but only install missing plugin infrastructure when
+" explicitly requested with DOTFILES_EDITOR_INSTALL=1.
 let s:plug_path = expand('~/.vim/autoload/plug.vim')
 if empty(glob(s:plug_path))
-  silent execute '!curl -fLo ' . s:plug_path . ' --create-dirs'
-        \ . ' https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+  if exists('$DOTFILES_EDITOR_INSTALL') && $DOTFILES_EDITOR_INSTALL ==# '1'
+    silent execute '!curl -fLo ' . s:plug_path . ' --create-dirs'
+          \ . ' https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  else
+    echohl WarningMsg
+    echom 'vim-plug missing; starting without plugins. Set DOTFILES_EDITOR_INSTALL=1 to bootstrap.'
+    echohl None
+    finish
+  endif
 endif
 
 if !filereadable(s:plug_path)
+  echohl WarningMsg
+  echom 'vim-plug unavailable; starting without plugins.'
+  echohl None
   finish
 endif
 

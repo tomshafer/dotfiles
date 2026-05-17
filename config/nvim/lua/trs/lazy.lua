@@ -4,7 +4,16 @@
 -- Bootstrap lazy.nvim
 -- See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
+local install_allowed = vim.env.DOTFILES_EDITOR_INSTALL == "1"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
+    if not install_allowed then
+        vim.notify(
+            "lazy.nvim missing; starting without plugins. Set DOTFILES_EDITOR_INSTALL=1 to bootstrap.",
+            vim.log.levels.WARN
+        )
+        return
+    end
+
     local lazyrepo = "https://github.com/folke/lazy.nvim.git"
     local out = vim.fn.system {
         "git",
@@ -170,4 +179,6 @@ require("lazy").setup({
             lazy = "💤 ",
         },
     },
+    install = { missing = install_allowed },
+    checker = { enabled = install_allowed },
 })

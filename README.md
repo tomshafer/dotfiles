@@ -9,7 +9,7 @@
 
 - `TRS_PS1_LABEL`: Label in front of the prompt
 - `TRS_PS1_NUM_DIRS`: Number of directories to show in prompt
-  `pwd` (Zsh only)
+  `pwd`
 - `TRS_PS1_ICON`: Prompt icon
 - `TRS_HOMEBREW_DROP_ZSH_FPATH`: Remove Homebrew additions to `fpath` to fix completion issues
 

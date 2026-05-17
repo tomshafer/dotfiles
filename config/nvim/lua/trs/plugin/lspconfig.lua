@@ -381,9 +381,11 @@ return {
                 "json-lsp", -- JSON LSP
             })
 
-            require("mason-tool-installer").setup {
-                ensure_installed = ensure_installed,
-            }
+            if vim.env.DOTFILES_EDITOR_INSTALL == "1" then
+                require("mason-tool-installer").setup {
+                    ensure_installed = ensure_installed,
+                }
+            end
 
             -- Either merge all additional server configs from the `servers.mason` and
             -- `servers.others` tables to the default language server configs as

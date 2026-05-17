@@ -60,3 +60,16 @@ export LESS_TERMCAP_ue=$'\033[0m'
 
 # Consistent defaults
 export LSCOLORS="exfxcxdxbxegedabagacadah"
+
+if [[ -z ${LS_COLORS-} ]]; then
+    if command -v vivid >/dev/null 2>&1; then
+        LS_COLORS="$(vivid generate molokai 2>/dev/null || vivid generate default)"
+		export LS_COLORS
+    elif command -v gdircolors >/dev/null 2>&1; then
+        eval "$(gdircolors -b)"
+    elif command -v dircolors >/dev/null 2>&1; then
+        eval "$(dircolors -b)"
+    else
+        export LS_COLORS="di=34:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43"
+    fi
+fi

@@ -4,6 +4,7 @@ set completion-ignore-case on
 
 # Configure so option-backspace doesn't eat whole paths
 "\e\C-?": unix-filename-rubout
+"\e\x7f": unix-filename-rubout
 
 # https://github.com/mathiasbynens/dotfiles ----------------
 
@@ -13,8 +14,14 @@ set show-all-if-unmodified on
 
 # Readline 6+ enhancements (avoid warnings on older systems)
 $if version >= 6
-# Cycle through completions with Tab (closer to zsh menu select)
-"\t": menu-complete
+# Complete/list with Tab. `menu-complete` inserts the first match immediately,
+# which is not the same as zsh's selectable completion menu.
+"\t": complete
+
+# Keep menu cycling available on Meta+Tab and Shift+Tab.
+"\e\t": menu-complete
+"\e[Z": menu-complete-backward
+set menu-complete-display-prefix on
 
 # Immediately add a trailing slash when autocompleting symlinks to directories
 set mark-symlinked-directories on
@@ -70,10 +77,10 @@ set bell-style none
 "\e[F": end-of-line          # End
 
 # Delete word backward (Option+Backspace)
-"\e\x7f": backward-kill-word
+"\e[3;3~": unix-filename-rubout
 
 # Delete word forward (Option+Delete)
-"\e[3;3~": kill-word
+"\e[3;9~": kill-word
 
 # Up/Down arrow for history search (like Terminal.app)
 "\e[A": history-search-backward
