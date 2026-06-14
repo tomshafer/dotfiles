@@ -7,7 +7,7 @@ Small configurations for a Zsh/Neovim workstation or a Bash/Vim server.
 Install the workstation profile:
 
 ```sh
-./install.sh
+./install
 ```
 
 This installs the common configuration, adds `shell/zshrc` to `~/.zshrc`,
@@ -16,7 +16,7 @@ adds the minimal `shell/zshenv` to `~/.zshenv`, and links the Neovim config.
 Install the server profile:
 
 ```sh
-./install.sh server
+./install server
 ```
 
 This installs the same common configuration and utilities, adds `shell/bashrc`
