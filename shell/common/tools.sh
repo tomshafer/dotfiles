@@ -1,187 +1,64 @@
-# shellcheck shell=bash
-# shellcheck disable=SC1090,SC1091,SC2012
+# shellcheck shell=bash disable=SC1090,SC1091,SC2012
+# Optional tools shared by Bash and Zsh.
 
-# Set up additional tools, if available.
-# These depend on completion being available.
-
-# Identify the shell for tool setup
-if [[ -n $ZSH_VERSION ]]; then
-    DOTFILES_SHELL="zsh"
-elif [[ -n $BASH_VERSION ]]; then
-    DOTFILES_SHELL="bash"
+if [ -n "${ZSH_VERSION-}" ]; then
+    DOTFILES_SHELL=zsh
+elif [ -n "${BASH_VERSION-}" ]; then
+    DOTFILES_SHELL=bash
 else
-    echo "Out of scope shell: \"$SHELL\"" >&2
-    return 1
+    return 0
 fi
 
-# uv -------------------------------------------------------
-
-for cmd in uv uvx; do
-    if command -v "$cmd" >/dev/null; then
-        if [[ $DOTFILES_SHELL == "zsh" ]]; then
-            if [[ -z ${_comps[$cmd]-} ]]; then
-                eval "$($cmd --generate-shell-completion $DOTFILES_SHELL)"
-            fi
-        else
-            if ! complete -p "$cmd" >/dev/null 2>&1; then
-                eval "$($cmd --generate-shell-completion $DOTFILES_SHELL)"
-            fi
-        fi
+for tool in uv uvx; do
+    command -v "$tool" >/dev/null 2>&1 || continue
+    if [ "$DOTFILES_SHELL" = zsh ]; then
+        [ -n "${_comps[$tool]-}" ] || eval "$("$tool" --generate-shell-completion zsh)"
+    elif ! complete -p "$tool" >/dev/null 2>&1; then
+        eval "$("$tool" --generate-shell-completion bash)"
     fi
 done
+unset tool
 
-# Fix completions for `uv run` in zsh
-# https://github.com/astral-sh/uv/issues/8432#issuecomment-2867318195
-if [[ $DOTFILES_SHELL == "zsh" ]] && command -v compdef >/dev/null 2>&1; then
-    _uv_run_mod() {
-        # shellcheck disable=SC2154
-        if [[ "${words[2]}" == "run" && "${words[CURRENT]}" != -* ]]; then
-            _arguments '*:filename:_files'
-        else
-            _uv "$@"
-        fi
-    }
-    compdef _uv_run_mod uv
+if command -v fzf >/dev/null 2>&1; then
+    tool_init=$(fzf --"$DOTFILES_SHELL" 2>/dev/null) && . <(printf '%s\n' "$tool_init")
+    unset tool_init
 fi
 
-# fzf ------------------------------------------------------
-
-if command -v fzf >/dev/null; then
-    if script="$(fzf --$DOTFILES_SHELL 2>/dev/null)"; then
-        source <(printf '%s\n' "$script")
-    fi
-    unset script
-fi
-
-# https://mike.place/2017/fzf-fd/
-if command -v fd >/dev/null; then
-    fd_excludes=(
-        -E .git
-        -E node_modules
-        -E .venv
-        -E __pycache__
-        -E .ruff_cache
-        -E .mypy_cache
-        -E .pytest_cache
-        -E .tox
-        -E .nox
-        -E .Rproj.user
-        -E .renv
-        -E .Rhistory
-        -E .RData
-        -E .Ruserdata
-    )
-    if [[ -z ${FZF_DEFAULT_COMMAND-} ]]; then
-        export FZF_DEFAULT_COMMAND="fd . $HOME -H ${fd_excludes[*]}"
-    fi
-    if [[ -z ${FZF_CTRL_T_COMMAND-} ]]; then
-        export FZF_CTRL_T_COMMAND="fd . -H ${fd_excludes[*]}"
-    fi
-    if [[ -z ${FZF_ALT_C_COMMAND-} ]]; then
-        export FZF_ALT_C_COMMAND="fd -t d . -H ${fd_excludes[*]}"
-    fi
+if command -v fd >/dev/null 2>&1; then
+    fd_excludes='-E .git -E node_modules -E .venv -E __pycache__ -E .ruff_cache -E .mypy_cache -E .pytest_cache -E .tox -E .nox -E .Rproj.user -E .renv'
+    [ -n "${FZF_DEFAULT_COMMAND-}" ] || FZF_DEFAULT_COMMAND="fd . $HOME -H $fd_excludes"
+    [ -n "${FZF_CTRL_T_COMMAND-}" ] || FZF_CTRL_T_COMMAND="fd . -H $fd_excludes"
+    [ -n "${FZF_ALT_C_COMMAND-}" ] || FZF_ALT_C_COMMAND="fd -t d . -H $fd_excludes"
+    export FZF_DEFAULT_COMMAND FZF_CTRL_T_COMMAND FZF_ALT_C_COMMAND
     unset fd_excludes
 fi
 
-# zoxide ---------------------------------------------------
-
-if command -v zoxide >/dev/null; then
-    eval "$(zoxide init $DOTFILES_SHELL)"
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init "$DOTFILES_SHELL")"
 fi
 
-# direnv ---------------------------------------------------
-
-if command -v direnv >/dev/null; then
-    eval "$(direnv hook $DOTFILES_SHELL)"
+if command -v direnv >/dev/null 2>&1; then
+    eval "$(direnv hook "$DOTFILES_SHELL")"
 fi
 
-# nvm ------------------------------------------------------
-
-if [[ -d "$HOME/.nvm" ]]; then
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
     export NVM_DIR="$HOME/.nvm"
-    export NVM_AUTO_USE=0
 
-    # Make default node binaries available before nvm lazy-loads.
-    if [[ -s "$NVM_DIR/alias/default" ]]; then
-        __nvm_resolve_default() {
-            local target lts_alias lts_star
-            target="$(<"$NVM_DIR/alias/default")"
+    __dotfiles_load_nvm() {
+        unset -f node npm npx corepack yarn pnpm nvm __dotfiles_load_nvm
+        . "$NVM_DIR/nvm.sh"
+    }
+    node() { __dotfiles_load_nvm; node "$@"; }
+    npm() { __dotfiles_load_nvm; npm "$@"; }
+    npx() { __dotfiles_load_nvm; npx "$@"; }
+    corepack() { __dotfiles_load_nvm; corepack "$@"; }
+    yarn() { __dotfiles_load_nvm; yarn "$@"; }
+    pnpm() { __dotfiles_load_nvm; pnpm "$@"; }
+    nvm() { __dotfiles_load_nvm; nvm "$@"; }
 
-            if [[ "$target" == "node" || "$target" == "stable" ]]; then
-                ls -1 "$NVM_DIR/versions/node" 2>/dev/null | sort -V | tail -n 1
-                return
-            fi
-
-            if [[ "$target" == "lts/*" ]]; then
-                lts_star="$NVM_DIR/alias/lts/*"
-                [[ -s $lts_star ]] && target="$(<"$lts_star")"
-            fi
-
-            if [[ "$target" == lts/* ]]; then
-                lts_alias="$NVM_DIR/alias/lts/${target#lts/}"
-                [[ -s "$lts_alias" ]] && target="$(<"$lts_alias")"
-            fi
-
-            printf '%s' "$target"
-        }
-
-        nvm_default_version="$(__nvm_resolve_default)"
-        unset -f __nvm_resolve_default
-
-        if [[ -n "$nvm_default_version" ]]; then
-            nvm_default_version="${nvm_default_version#v}"
-            nvm_default_dir="$NVM_DIR/versions/node/v$nvm_default_version/bin"
-            if [[ -d "$nvm_default_dir" ]]; then
-                add_to_path "$nvm_default_dir"
-                export NVM_BIN="$nvm_default_dir"
-            fi
-        fi
-        unset nvm_default_version nvm_default_dir
+    if [ "$DOTFILES_SHELL" = bash ] && [ -r "$NVM_DIR/bash_completion" ]; then
+        . "$NVM_DIR/bash_completion"
     fi
-
-    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
-
-    __nvm_lazy_load() {
-        # Source nvm only once
-        unset -f node npm npx corepack yarn pnpm nvm __nvm_lazy_load
-        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-    }
-
-    # Stubs that load nvm only when needed
-    node() {
-        __nvm_lazy_load
-        node "$@"
-    }
-    npm() {
-        __nvm_lazy_load
-        npm "$@"
-    }
-    npx() {
-        __nvm_lazy_load
-        npx "$@"
-    }
-    corepack() {
-        __nvm_lazy_load
-        corepack "$@"
-    }
-    yarn() {
-        __nvm_lazy_load
-        yarn "$@"
-    }
-    pnpm() {
-        __nvm_lazy_load
-        pnpm "$@"
-    }
-    nvm() {
-        __nvm_lazy_load
-        nvm "$@"
-    }
-fi
-
-# LM Studio ------------------------------------------------
-
-if [[ -d "$HOME/.lmstudio/bin" ]]; then
-    add_to_path "$HOME/.lmstudio/bin"
 fi
 
 unset DOTFILES_SHELL

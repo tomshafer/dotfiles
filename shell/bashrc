@@ -1,0 +1,73 @@
+# shellcheck shell=bash disable=SC1090,SC1091,SC2034
+
+case $- in
+    *i*) ;;
+    *) return ;;
+esac
+
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+
+shopt -s cdspell checkwinsize histappend histverify cmdhist
+shopt -s autocd dirspell globstar lithist no_empty_cmd_completion 2>/dev/null || true
+set -o noclobber
+
+. "$DOTFILES_DIR/shell/common/env.sh"
+. "$DOTFILES_DIR/shell/common/aliases.sh"
+. "$DOTFILES_DIR/shell/common/functions.sh"
+
+# Load the completion package supplied by the host, when available.
+for completion_file in \
+    "${HOMEBREW_PREFIX-}/etc/profile.d/bash_completion.sh" \
+    /usr/share/bash-completion/bash_completion \
+    /etc/bash_completion; do
+    if [ -r "$completion_file" ]; then
+        . "$completion_file"
+        break
+    fi
+done
+unset completion_file
+
+# Git's prompt helper is separate from completion on many servers.
+if ! declare -F __git_ps1 >/dev/null 2>&1; then
+    for git_prompt in \
+        "${HOMEBREW_PREFIX-}/etc/bash_completion.d/git-prompt.sh" \
+        /usr/share/git/completion/git-prompt.sh \
+        /etc/bash_completion.d/git-prompt.sh; do
+        if [ -r "$git_prompt" ]; then
+            . "$git_prompt"
+            break
+        fi
+    done
+    unset git_prompt
+fi
+
+. "$DOTFILES_DIR/shell/common/tools.sh"
+
+export HISTFILE="$HOME/.bash_history"
+export HISTSIZE=100000 HISTFILESIZE=500000
+export HISTCONTROL=ignoreboth:erasedups
+export HISTIGNORE='ls:ll:la:cd:pwd:clear:history:exit'
+export HISTTIMEFORMAT='%F %T '
+
+__dotfiles_prompt_command() {
+    local status=$?
+    history -a
+    history -n
+
+    local color='\[\e[34m\]'
+    if [ "$status" -ne 0 ] && [ "$status" -ne 130 ]; then
+        color='\[\e[33m\]'
+    fi
+
+    local git=''
+    if declare -F __git_ps1 >/dev/null 2>&1; then
+        git="$(__git_ps1 ' (%s)')"
+    fi
+    PS1="${TRS_PS1_LABEL:+$TRS_PS1_LABEL }\[\e[34m\]\w\[\e[35m\]$git \[\e[0m\]${color}${TRS_PS1_ICON:-\$}\[\e[0m\] "
+}
+PROMPT_COMMAND=__dotfiles_prompt_command
+export PROMPT_DIRTRIM="${TRS_PS1_NUM_DIRS:-1}"
+
+dotfiles_local="${XDG_CONFIG_HOME}/dotfiles/local.sh"
+[ -r "$dotfiles_local" ] && . "$dotfiles_local"
+unset dotfiles_local

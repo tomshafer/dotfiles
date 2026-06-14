@@ -1,94 +1,72 @@
 # Dotfiles
 
-## Requirements
+Small configurations for a Zsh/Neovim workstation or a Bash/Vim server.
 
-- **Shell configuration:** Bash 3.2+ or Zsh
-- **Utility scripts (`bin/`):** Bash 3.2+ (uses `[[ ]]` and similar features)
+## Install
 
-## Configuration flags
+Install the workstation profile:
 
-- `TRS_PS1_LABEL`: Label in front of the prompt
-- `TRS_PS1_NUM_DIRS`: Number of directories to show in prompt
-  `pwd`
-- `TRS_PS1_ICON`: Prompt icon
-- `TRS_HOMEBREW_DROP_ZSH_FPATH`: Remove Homebrew additions to `fpath` to fix completion issues
+```sh
+./install.sh
+```
 
-## Local overrides
+This installs the common configuration, adds `shell/zshrc` to `~/.zshrc`,
+and links the Neovim config.
 
-If you want machine-specific or private settings, create a local file at:
+Install the server profile:
 
-`~/.config/dotfiles/local.sh`
+```sh
+./install.sh server
+```
 
-This file is optional and not tracked. It is loaded at the end of both
-`shell/zsh/zshrc` and `shell/bash/bashrc`, so it can override defaults.
-Examples: work git identity, extra PATH entries, proxies, secrets.
+This installs the same common configuration and utilities, adds `shell/bashrc`
+to `~/.bashrc`, and links `inputrc` and the plugin-free Vim config. Bash,
+inputrc, and Vim are installed only by this profile.
 
-## SSH configuration
+The installer preserves existing shell files by appending one idempotent source
+line. It refuses to replace other existing configuration files or links.
 
-This repo ships shared SSH defaults at `~/.config/dotfiles/ssh/config`.
-To use them, add the following to your per-machine `~/.ssh/config`:
+## Shell layout
+
+Both Bash and Zsh source:
+
+- `shell/common/env.sh`: PATH and exported environment
+- `shell/common/aliases.sh`: shared aliases
+- `shell/common/functions.sh`: shared helper functions
+- `shell/common/tools.sh`: optional `uv`, `fzf`, `zoxide`, `direnv`, and NVM setup
+
+If an optional tool is installed, it is initialized in either shell. Completion,
+history, prompts, keybindings, and shell options remain in `shell/bashrc` and
+`shell/zshrc` because their implementations are shell-specific.
+
+Machine-specific settings can go in:
+
+```text
+~/.config/dotfiles/local.sh
+```
+
+It is sourced last by both shells.
+
+Prompt settings:
+
+- `TRS_PS1_LABEL`: optional label before the prompt
+- `TRS_PS1_NUM_DIRS`: number of path components to show
+- `TRS_PS1_ICON`: prompt character
+
+## SSH
+
+Shared SSH defaults are installed at `~/.config/dotfiles/ssh/config`. Include
+them from `~/.ssh/config`:
 
 ```sshconfig
 Include ~/.config/dotfiles/ssh/config
 Include ~/.ssh/config.local
 ```
 
-Then keep your host entries in `~/.ssh/config` or `~/.ssh/config.local`
-as you prefer.
+Keep host and machine-specific settings in `~/.ssh/config.local`.
 
-An example local config is provided at:
+## Checks
 
-`config/dotfiles/ssh/config.local.example`
-
-### 1Password agent (macOS)
-
-Enable the 1Password SSH agent, then set `IdentityAgent` in
-`~/.ssh/config.local` using the socket path shown in `$SSH_AUTH_SOCK`:
-
-```sshconfig
-Host *
-    IdentityAgent "$SSH_AUTH_SOCK"
-    AddKeysToAgent no
+```sh
+just check
 ```
-
-### Without 1Password
-
-Use `IdentityFile` entries and optional agent settings in
-`~/.ssh/config.local`, for example:
-
-```sshconfig
-Host *
-    AddKeysToAgent yes
-```
-
-## Installing these dotfiles
-
-Best practice, I think:
-
-1. Create the relevant file
-2. Source/include system files
-3. Source/include my files
-
-For Git, also should set:
-
-- `user.name`
-- `user.email`
-- `user.signingkey`
-
-#### macOS
-
-TBC
-
-#### Amazon Linux
-
-TBC
-
-## TODO
-
-- Find out whether common environments have global `inputrc`,
-  `bashrc`, or `bash_profile` scripts to be included in my
-  versions, or what the delivery system should look like
-- Figure out where bash-completion is for common environments
-  - What typically should be installed for these to be available?
-- Look at GPG Agent Forwarding for SSH
-- Figure out command- and alt-arrow in inputrc

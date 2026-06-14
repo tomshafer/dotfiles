@@ -1,127 +1,76 @@
 # shellcheck shell=bash
-# Common, useful functions.
+# Functions shared by Bash and Zsh.
 
-######################################################################
-# Run `mkdir` and `cd` together
-# Arguments:
-#   Directory name to create and move to.
-# Outputs:
-#   Writes `mkdir` call to stderr.
-######################################################################
 mkcd() {
-  [ $# != 1 ] && echo >&2 "Usage: mkcd DIRECTORY" && return 1
-  mkdir -p "$1" && echo >&2 "mkdir \"$1\"" && cd "$1" || return
+    [ "$#" -eq 1 ] || { echo 'usage: mkcd DIRECTORY' >&2; return 1; }
+    mkdir -p "$1" && cd "$1" || return
 }
 
-######################################################################
-# Run `mktemp -d` and `cd` together
-# Arguments:
-#   Directory name to create and move to.
-# Outputs:
-#   Writes `mkdir` call to stderr.
-######################################################################
 mktmp() {
-  [ $# != 0 ] && echo >&2 "Usage: mktmp" && return 1
-  local dir
-  dir=$(mktemp -d)
-  echo >&2 "mktemp -d \"$dir\"" && cd "$dir" || return
+    [ "$#" -eq 0 ] || { echo 'usage: mktmp' >&2; return 1; }
+    local directory
+    directory=$(mktemp -d) || return
+    echo "$directory" >&2
+    cd "$directory" || return
 }
 
-######################################################################
-# Launch a new VS Code window
-# Arguments:
-#   Directory or file to open in a new window.
-######################################################################
-if command -v code >/dev/null; then
-  cn() {
-    local target="${1:-.}"
-    code -n "$target"
-  }
+if command -v code >/dev/null 2>&1; then
+    cn() {
+        code -n "${1:-.}"
+    }
 fi
 
-######################################################################
-# Activate the nearest virtual env
-######################################################################
 venv() {
-  # If a virtual env is set, deactivate it
-  if [[ -n ${VIRTUAL_ENV-} ]]; then
-    if command -v deactivate >/dev/null; then
-      echo "Deactivated $VIRTUAL_ENV"
-      deactivate
+    if [ -n "${VIRTUAL_ENV-}" ] && command -v deactivate >/dev/null 2>&1; then
+        deactivate
     fi
-  fi
 
-  local here parent dr
-  here="$(pwd)"
-
-  while :; do
-    # Try to fine a venv in the directory
-    for dr in .venv .env venv env; do
-      if [[ -d $here/$dr ]]; then
-        echo >&2 "Activated   $here/$dr"
-        # shellcheck disable=SC1090
-        source "$here"/"$dr"/bin/activate
-        echo >&2 "python:     $(which python)"
-        echo >&2 "pip:        $(which pip)"
-        return
-      fi
+    local here parent name
+    here=$PWD
+    while :; do
+        for name in .venv .env venv env; do
+            if [ -r "$here/$name/bin/activate" ]; then
+                # shellcheck disable=SC1090
+                . "$here/$name/bin/activate"
+                echo "Activated $here/$name" >&2
+                return
+            fi
+        done
+        parent=$(dirname "$here")
+        [ "$parent" = "$here" ] && break
+        here=$parent
     done
-
-    # If not, loop again with the parent
-    parent=$(dirname "$here")
-
-    # Break when the parent is repeated
-    if [[ $parent == "$here" ]]; then
-      break
-    fi
-
-    here="$parent"
-  done
-  echo >&2 "No venv was located"
+    echo 'No virtual environment found' >&2
+    return 1
 }
 
-######################################################################
-# Change to a Git repo's root directory
-######################################################################
 croot() {
-  local root
-  root="$(git rev-parse --show-toplevel 2>/dev/null)" || return
-  cd "$root" || return
+    local root
+    root=$(git rev-parse --show-toplevel 2>/dev/null) || return
+    cd "$root" || return
 }
 
-######################################################################
-# Serve a local directory with Python's built-in HTTP server
-# Arguments:
-#   Port number.
-######################################################################
 serve() {
-  local port="${1:-8000}"
-
-  if command -v uv >/dev/null 2>&1; then
-    uv run --no-project python -m http.server "$port"
-  elif command -v python3 >/dev/null 2>&1; then
-    python3 -m http.server "$port"
-  else
-    python -m http.server "$port"
-  fi
+    local port=${1:-8000}
+    if command -v uv >/dev/null 2>&1; then
+        uv run --no-project python -m http.server "$port"
+    elif command -v python3 >/dev/null 2>&1; then
+        python3 -m http.server "$port"
+    else
+        python -m http.server "$port"
+    fi
 }
 
-######################################################################
-# `cd` with fuzzy finder
-######################################################################
 cdf() {
-  command -v fzf >/dev/null || return 1
-  local dir
-  dir="$(fd -t d . "${1:-.}" -H 2>/dev/null | fzf)"
-  cd "$dir" || exit
+    command -v fd >/dev/null 2>&1 && command -v fzf >/dev/null 2>&1 || return 1
+    local directory
+    directory=$(fd -t d . "${1:-.}" -H 2>/dev/null | fzf) || return
+    [ -n "$directory" ] && cd "$directory" || return
 }
 
-######################################################################
-# `command -v` with fuzzy finder
-######################################################################
 vf() {
-  command -v fzf >/dev/null || return 1
-  local file
-  file="$(fd -t f . "${1:-.}" -H 2>/dev/null | fzf)"
-  "${EDITOR:-vi}" "$file"
+    command -v fd >/dev/null 2>&1 && command -v fzf >/dev/null 2>&1 || return 1
+    local file
+    file=$(fd -t f . "${1:-.}" -H 2>/dev/null | fzf) || return
+    [ -n "$file" ] && "${EDITOR:-vi}" "$file"
 }

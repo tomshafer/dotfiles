@@ -1,91 +1,52 @@
 # shellcheck shell=bash
-# Common aliases
+# Aliases shared by Bash and Zsh.
 
-# Remove unwanted preset aliases -------------------------------------
-
-# I've seen these on various remote systems
-for alias in ls ll l la lt lr xx l2; do
-  [[ "$(command -v "$alias" | cut -d ' ' -f 1)" == "alias" ]] && unalias "$alias"
+for alias_name in ls l ll la lr; do
+    unalias "$alias_name" 2>/dev/null || true
 done
-unset alias
+unset alias_name
 
-# Listing ------------------------------------------------------------
-
-alias l="ls -l"
-alias ll="l -A"
-alias la="l -a"
-alias lr="l -rt"
-
-# Prefer lsd, then ls
 if command -v lsd >/dev/null 2>&1; then
-  alias ls="lsd --classify"
+    alias ls='lsd --classify'
+elif command ls --color=auto -d . >/dev/null 2>&1; then
+    alias ls='command ls -Fh --color=auto'
 else
-  if command ls --color=auto >/dev/null 2>&1; then
-    alias ls="command ls -Fh --color=auto"
-  else
-    alias ls="command ls -FGh"
-  fi
+    alias ls='command ls -FGh'
 fi
+alias l='ls -l'
+alias ll='l -A'
+alias la='l -a'
+alias lr='l -rt'
 
-# Navigation ---------------------------------------------------------
+alias -- -='cd -'
+alias ..='cd ..'
+alias ...='cd ../..'
 
-alias -- -="cd -"
-alias ..="cd .."
-alias ...="cd ../.."
-
-# Miscellany ---------------------------------------------------------
-
-# Git
-alias g="git"
-alias mkd="mkcd"
-
-# Editors
-if command -v nvim >/dev/null 2>&1; then
-  alias vim='nvim'
-fi
-if command -v vim >/dev/null 2>&1; then
-  alias vi='vim'
-fi
-
-# Fix systems where `bat` is called `batcat`
-if ! command -v bat >/dev/null && command -v batcat >/dev/null; then
-  alias bat='batcat'
-fi
-
-# Alias `cat` to `bat` if we have it
-if command -v bat >/dev/null 2>&1; then
-  alias cat='bat -pp'
-fi
-
-# Reload the shell
+alias g=git
+alias mkd=mkcd
 alias reload='exec "$SHELL" -l'
-
-# Use color with grep
 alias grep='grep --color=auto'
-
-# ripgrep in case-insensitive mode
-if command -v rg >/dev/null 2>&1; then
-  alias rgi='rg -i'
-fi
-
-# Pretty print paths
 alias path='printf "%s\n" ${PATH//:/\\n}'
 
-# macOS specific -----------------------------------------------------
+if command -v nvim >/dev/null 2>&1; then
+    alias vim=nvim
+fi
+if command -v vim >/dev/null 2>&1; then
+    alias vi=vim
+fi
+if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
+    alias bat=batcat
+fi
+if command -v bat >/dev/null 2>&1; then
+    alias cat='bat -pp'
+fi
+if command -v rg >/dev/null 2>&1; then
+    alias rgi='rg -i'
+fi
 
-if [[ "$(uname -s)" == "Darwin" ]]; then
-  # Open applications from the command line
-  alias o='open'
-  alias oo='o .'
-
-  # Open various macOS-specific applications
-  for appname in RStudio Skim; do
-    apppath="/Applications/${appname}.app"
-
-    if [[ -e $apppath ]]; then
-      lowername=$(echo "$appname" | tr '[:upper:]' '[:lower:]')
-      eval "alias $lowername='open -a \"$apppath\"'"
-    fi
-  done
-  unset appname apppath lowername
+if [ "$(uname -s)" = Darwin ]; then
+    alias o=open
+    alias oo='open .'
+    [ -d /Applications/RStudio.app ] && alias rstudio='open -a /Applications/RStudio.app'
+    [ -d /Applications/Skim.app ] && alias skim='open -a /Applications/Skim.app'
 fi

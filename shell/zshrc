@@ -1,0 +1,79 @@
+# shellcheck shell=bash disable=SC1090,SC1091,SC2016,SC2034,SC2128,SC2206,SC2296,SC2298
+# Shared behavior lives in shell/common; this file is Zsh-specific setup.
+
+DOTFILES_DIR="${${(%):-%N}:A:h:h}"
+
+setopt AUTO_CD APPEND_HISTORY COMPLETE_IN_WORD HIST_EXPIRE_DUPS_FIRST
+setopt HIST_FCNTL_LOCK HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE
+setopt HIST_REDUCE_BLANKS HIST_SAVE_NO_DUPS HIST_VERIFY
+setopt INC_APPEND_HISTORY_TIME NO_BEEP NO_CASE_GLOB NO_CLOBBER
+setopt PROMPT_SUBST SHARE_HISTORY
+
+. "$DOTFILES_DIR/shell/common/env.sh"
+. "$DOTFILES_DIR/shell/common/aliases.sh"
+. "$DOTFILES_DIR/shell/common/functions.sh"
+
+if [ -n "${HOMEBREW_PREFIX-}" ]; then
+    for completion_dir in \
+        "$HOMEBREW_PREFIX/share/zsh-completions" \
+        "$HOMEBREW_PREFIX/share/zsh/site-functions"; do
+        [ -d "$completion_dir" ] && fpath=("$completion_dir" $fpath)
+    done
+fi
+for completion_dir in "$HOME/.local/share/zsh/site-functions" "$HOME/.zfunc"; do
+    [ -d "$completion_dir" ] && fpath=("$completion_dir" $fpath)
+done
+unset completion_dir
+
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' menu select
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh"
+mkdir -p "$XDG_CACHE_HOME/zsh"
+
+autoload -Uz compinit
+ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION"
+if [ -s "$ZSH_COMPDUMP" ]; then
+    compinit -C -d "$ZSH_COMPDUMP"
+else
+    compinit -d "$ZSH_COMPDUMP"
+fi
+
+. "$DOTFILES_DIR/shell/common/tools.sh"
+
+bindkey -e
+bindkey '^[[1;3D' backward-word
+bindkey '^[[1;3C' forward-word
+bindkey '^[[1;9D' beginning-of-line
+bindkey '^[[1;9C' end-of-line
+bindkey '^[[3;3~' backward-kill-word
+bindkey '^[[3;9~' kill-word
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey '^[[A' up-line-or-beginning-search
+bindkey '^[[B' down-line-or-beginning-search
+WORDCHARS=${WORDCHARS//\/}
+
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=100000
+SAVEHIST=500000
+
+autoload -Uz colors vcs_info
+colors
+zstyle ':vcs_info:git:*' formats '%F{magenta}(%b)%f'
+
+precmd() {
+    local status=$?
+    vcs_info
+    if [ "$status" -ne 0 ] && [ "$status" -ne 130 ]; then
+        TRS_PS1_STATUS_COLOR='%F{yellow}'
+    else
+        TRS_PS1_STATUS_COLOR=''
+    fi
+}
+PROMPT='${TRS_PS1_LABEL:+$TRS_PS1_LABEL }%F{blue}%${TRS_PS1_NUM_DIRS:-1}d%f ${vcs_info_msg_0_} ${TRS_PS1_STATUS_COLOR}${TRS_PS1_ICON:-%(!.#.$)}%f '
+
+dotfiles_local="${XDG_CONFIG_HOME}/dotfiles/local.sh"
+[ -r "$dotfiles_local" ] && . "$dotfiles_local"
+unset dotfiles_local
