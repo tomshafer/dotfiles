@@ -47,9 +47,6 @@ if [[ -s $ZSH_COMPDUMP && ( ! -s $ZSH_COMPDUMP.zwc || $ZSH_COMPDUMP -nt $ZSH_COM
     zcompile -R -- "$ZSH_COMPDUMP.zwc" "$ZSH_COMPDUMP" 2>/dev/null
 fi
 
-# Optional tools load from cached initialization scripts where possible.
-. "$DOTFILES_DIR/shell/common/tools.sh"
-
 bindkey -e
 bindkey '^[[1;3D' backward-word
 bindkey '^[[1;3C' forward-word
@@ -63,6 +60,9 @@ zle -N down-line-or-beginning-search
 bindkey '^[[A' up-line-or-beginning-search
 bindkey '^[[B' down-line-or-beginning-search
 WORDCHARS=${WORDCHARS//\/}
+
+# Optional tools load after the base keymap so fzf can install its widgets.
+. "$DOTFILES_DIR/shell/common/tools.sh"
 
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=100000
