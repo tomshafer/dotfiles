@@ -18,6 +18,12 @@ setopt PROMPT_SUBST SHARE_HISTORY
 . "$DOTFILES_DIR/shell/common/aliases.sh"
 . "$DOTFILES_DIR/shell/common/functions.sh"
 
+# Machine-specific settings load before completion and tools. Use a Zsh guard
+# inside this shared file for fpath or other shell-specific configuration.
+dotfiles_local="$XDG_CONFIG_HOME/dotfiles/local.sh"
+[[ -r $dotfiles_local ]] && source "$dotfiles_local"
+unset dotfiles_local
+
 # Completion paths must be finalized before compinit runs.
 if [[ -n ${HOMEBREW_PREFIX-} ]]; then
     for completion_dir in \
@@ -67,11 +73,6 @@ WORDCHARS=${WORDCHARS//\/}
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=100000
 SAVEHIST=500000
-
-# Local settings load before plugins so they can configure plugin behavior.
-dotfiles_local="$XDG_CONFIG_HOME/dotfiles/local.sh"
-[[ -r $dotfiles_local ]] && source "$dotfiles_local"
-unset dotfiles_local
 
 _dotfiles_first_readable() {
     local candidate

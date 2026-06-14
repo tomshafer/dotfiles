@@ -15,6 +15,12 @@ set -o noclobber
 . "$DOTFILES_DIR/shell/common/aliases.sh"
 . "$DOTFILES_DIR/shell/common/functions.sh"
 
+# Machine-specific settings load before completion and tools. Use shell guards
+# inside this shared file for settings that are not portable.
+dotfiles_local="${XDG_CONFIG_HOME}/dotfiles/local.sh"
+[ -r "$dotfiles_local" ] && . "$dotfiles_local"
+unset dotfiles_local
+
 # Load the completion package supplied by the host, unless its loader already
 # exists from the system bashrc.
 if ! declare -F _completion_loader >/dev/null 2>&1; then
@@ -74,7 +80,3 @@ case ";${PROMPT_COMMAND-};" in
     *) PROMPT_COMMAND="__dotfiles_prompt_command; $PROMPT_COMMAND" ;;
 esac
 export PROMPT_DIRTRIM="${TRS_PS1_NUM_DIRS:-1}"
-
-dotfiles_local="${XDG_CONFIG_HOME}/dotfiles/local.sh"
-[ -r "$dotfiles_local" ] && . "$dotfiles_local"
-unset dotfiles_local

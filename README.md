@@ -57,13 +57,26 @@ Plugins are optional and discovered from Homebrew, common system paths, or
 An existing `~/.p10k.zsh` is used when present. Otherwise the small default at
 `shell/p10k.zsh` is loaded.
 
-Machine-specific settings can go in:
+Machine-specific settings go in one optional file:
 
 ```text
 ~/.config/dotfiles/local.sh
 ```
 
-It is sourced last by both shells.
+It is sourced by both shells after shared aliases and functions, but before
+completion and optional tools. Portable settings can be written normally; use
+shell guards for shell-specific settings:
+
+```sh
+add_to_path "$HOME/work/bin"
+export PATH
+
+if [ -n "${ZSH_VERSION-}" ]; then
+    fpath=("$HOME/work/zsh/site-functions" $fpath)
+fi
+
+alias work='cd "$HOME/work"'
+```
 
 Prompt settings:
 
