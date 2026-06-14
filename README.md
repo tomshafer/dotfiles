@@ -11,7 +11,7 @@ Install the workstation profile:
 ```
 
 This installs the common configuration, adds `shell/zshrc` to `~/.zshrc`,
-and links the Neovim config.
+adds the minimal `shell/zshenv` to `~/.zshenv`, and links the Neovim config.
 
 Install the server profile:
 
@@ -41,6 +41,7 @@ history, prompts, keybindings, and shell options remain in `shell/bashrc` and
 
 The Zsh setup follows the fast DIY++ ordering from `zsh-bench`:
 
+- global startup files are disabled from `.zshenv`
 - Powerlevel10k instant prompt loads before normal initialization
 - completion metadata and generated tool integrations are cached
 - `zsh-autosuggestions` uses one-time widget binding
@@ -56,6 +57,11 @@ Plugins are optional and discovered from Homebrew, common system paths, or
 
 An existing `~/.p10k.zsh` is used when present. Otherwise the small default at
 `shell/p10k.zsh` is loaded.
+
+On macOS, disabling global startup files avoids `/etc/zprofile` invoking
+`path_helper` and `/etc/zshrc` rebuilding defaults this config replaces. The
+shared environment reads `/etc/paths` and `/etc/paths.d` directly so installed
+tool paths are retained without spawning `path_helper`.
 
 Machine-specific settings go in one optional file:
 

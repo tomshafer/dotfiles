@@ -78,6 +78,7 @@ if [ "$PROFILE" = server ]; then
     link_file "$DOTFILES_DIR/config/inputrc/inputrc" "$HOME/.inputrc"
     link_file "$DOTFILES_DIR/config/vim/vimrc" "$HOME/.vimrc"
 else
+    source_shell "$HOME/.zshenv" "$DOTFILES_DIR/shell/zshenv"
     source_shell "$HOME/.zshrc" "$DOTFILES_DIR/shell/zshrc"
     link_file "$DOTFILES_DIR/config/nvim/init.lua" "$CONFIG_HOME/nvim/init.lua"
 fi

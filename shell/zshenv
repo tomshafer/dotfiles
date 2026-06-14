@@ -1,0 +1,4 @@
+# shellcheck shell=bash
+# Skip system-wide zprofile, zshrc, zlogin, and zlogout. The unavoidable global
+# zshenv has already run by the time this file is sourced.
+setopt NO_GLOBAL_RCS

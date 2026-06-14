@@ -73,6 +73,7 @@ __dotfiles_prompt_command() {
         git="$(__git_ps1 ' (%s)')"
     fi
     PS1="${TRS_PS1_LABEL:+$TRS_PS1_LABEL }\[\e[34m\]\w\[\e[35m\]$git \[\e[0m\]${color}${TRS_PS1_ICON:-\$}\[\e[0m\] "
+    return "$status"
 }
 case ";${PROMPT_COMMAND-};" in
     *';__dotfiles_prompt_command;'*) ;;

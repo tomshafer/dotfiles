@@ -86,6 +86,7 @@ _dotfiles_first_readable() {
 }
 
 # Powerlevel10k performs Git status asynchronously and supplies instant prompt.
+typeset -g POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
 p10k_loaded=0
 if _dotfiles_first_readable \
     "$XDG_DATA_HOME/zsh/powerlevel10k/powerlevel10k.zsh-theme" \

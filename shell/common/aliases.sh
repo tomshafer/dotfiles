@@ -44,9 +44,11 @@ if command -v rg >/dev/null 2>&1; then
     alias rgi='rg -i'
 fi
 
-if [ "$(uname -s)" = Darwin ]; then
+case ${OSTYPE-} in
+darwin*)
     alias o=open
     alias oo='open .'
     [ -d /Applications/RStudio.app ] && alias rstudio='open -a /Applications/RStudio.app'
     [ -d /Applications/Skim.app ] && alias skim='open -a /Applications/Skim.app'
-fi
+    ;;
+esac
