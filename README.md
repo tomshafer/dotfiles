@@ -39,6 +39,24 @@ If an optional tool is installed, it is initialized in either shell. Completion,
 history, prompts, keybindings, and shell options remain in `shell/bashrc` and
 `shell/zshrc` because their implementations are shell-specific.
 
+The Zsh setup follows the fast DIY++ ordering from `zsh-bench`:
+
+- Powerlevel10k instant prompt loads before normal initialization
+- completion metadata and generated tool integrations are cached
+- `zsh-autosuggestions` uses one-time widget binding
+- Powerlevel10k handles Git status asynchronously
+
+Plugins are optional and discovered from Homebrew, common system paths, or
+`$XDG_DATA_HOME/zsh`. The expected local layout is:
+
+```text
+~/.local/share/zsh/powerlevel10k/
+~/.local/share/zsh/zsh-autosuggestions/
+```
+
+An existing `~/.p10k.zsh` is used when present. Otherwise the small default at
+`shell/p10k.zsh` is loaded.
+
 Machine-specific settings can go in:
 
 ```text

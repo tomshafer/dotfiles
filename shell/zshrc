@@ -1,5 +1,10 @@
 # shellcheck shell=bash disable=SC1090,SC1091,SC2016,SC2034,SC2128,SC2206,SC2296,SC2298
-# Shared behavior lives in shell/common; this file is Zsh-specific setup.
+
+# Powerlevel10k instant prompt must stay near the top. Anything that may ask for
+# input, such as a keychain unlock, must run before this block.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
 DOTFILES_DIR="${${(%):-%N}:A:h:h}"
 
@@ -13,32 +18,36 @@ setopt PROMPT_SUBST SHARE_HISTORY
 . "$DOTFILES_DIR/shell/common/aliases.sh"
 . "$DOTFILES_DIR/shell/common/functions.sh"
 
-if [ -n "${HOMEBREW_PREFIX-}" ]; then
+# Completion paths must be finalized before compinit runs.
+if [[ -n ${HOMEBREW_PREFIX-} ]]; then
     for completion_dir in \
         "$HOMEBREW_PREFIX/share/zsh-completions" \
         "$HOMEBREW_PREFIX/share/zsh/site-functions"; do
-        [ -d "$completion_dir" ] && fpath=("$completion_dir" $fpath)
+        [[ -d $completion_dir ]] && fpath=("$completion_dir" $fpath)
     done
 fi
 for completion_dir in "$HOME/.local/share/zsh/site-functions" "$HOME/.zfunc"; do
-    [ -d "$completion_dir" ] && fpath=("$completion_dir" $fpath)
+    [[ -d $completion_dir ]] && fpath=("$completion_dir" $fpath)
 done
+typeset -U fpath
 unset completion_dir
 
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' menu select
 zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh"
-mkdir -p "$XDG_CACHE_HOME/zsh"
+zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/completion"
+
+ZSH_CACHE_DIR="$XDG_CACHE_HOME/zsh"
+[[ -d $ZSH_CACHE_DIR/completion ]] || mkdir -p "$ZSH_CACHE_DIR/completion"
+ZSH_COMPDUMP="$ZSH_CACHE_DIR/zcompdump-$ZSH_VERSION"
 
 autoload -Uz compinit
-ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION"
-if [ -s "$ZSH_COMPDUMP" ]; then
-    compinit -C -d "$ZSH_COMPDUMP"
-else
-    compinit -d "$ZSH_COMPDUMP"
+compinit -d "$ZSH_COMPDUMP"
+if [[ -s $ZSH_COMPDUMP && ( ! -s $ZSH_COMPDUMP.zwc || $ZSH_COMPDUMP -nt $ZSH_COMPDUMP.zwc ) ]]; then
+    zcompile -R -- "$ZSH_COMPDUMP.zwc" "$ZSH_COMPDUMP" 2>/dev/null
 fi
 
+# Optional tools load from cached initialization scripts where possible.
 . "$DOTFILES_DIR/shell/common/tools.sh"
 
 bindkey -e
@@ -59,21 +68,53 @@ HISTFILE="$HOME/.zsh_history"
 HISTSIZE=100000
 SAVEHIST=500000
 
-autoload -Uz colors vcs_info
-colors
-zstyle ':vcs_info:git:*' formats '%F{magenta}(%b)%f'
-
-precmd() {
-    local status=$?
-    vcs_info
-    if [ "$status" -ne 0 ] && [ "$status" -ne 130 ]; then
-        TRS_PS1_STATUS_COLOR='%F{yellow}'
-    else
-        TRS_PS1_STATUS_COLOR=''
-    fi
-}
-PROMPT='${TRS_PS1_LABEL:+$TRS_PS1_LABEL }%F{blue}%${TRS_PS1_NUM_DIRS:-1}d%f ${vcs_info_msg_0_} ${TRS_PS1_STATUS_COLOR}${TRS_PS1_ICON:-%(!.#.$)}%f '
-
-dotfiles_local="${XDG_CONFIG_HOME}/dotfiles/local.sh"
-[ -r "$dotfiles_local" ] && . "$dotfiles_local"
+# Local settings load before plugins so they can configure plugin behavior.
+dotfiles_local="$XDG_CONFIG_HOME/dotfiles/local.sh"
+[[ -r $dotfiles_local ]] && source "$dotfiles_local"
 unset dotfiles_local
+
+_dotfiles_first_readable() {
+    local candidate
+    for candidate; do
+        if [[ -r $candidate ]]; then
+            REPLY=$candidate
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Disabling automatic rebinding avoids work on every prompt. All custom widgets
+# have already been defined, so a single bind during plugin load is sufficient.
+typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+if _dotfiles_first_readable \
+    "$XDG_DATA_HOME/zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+    "$XDG_DATA_HOME/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+    "${HOMEBREW_PREFIX-}/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+    /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh; then
+    source "$REPLY"
+fi
+
+# Powerlevel10k performs Git status asynchronously and supplies instant prompt.
+p10k_loaded=0
+if _dotfiles_first_readable \
+    "$XDG_DATA_HOME/zsh/powerlevel10k/powerlevel10k.zsh-theme" \
+    "$XDG_DATA_HOME/powerlevel10k/powerlevel10k.zsh-theme" \
+    "${HOMEBREW_PREFIX-}/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme" \
+    /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme; then
+    source "$REPLY"
+    p10k_loaded=1
+    if [[ -r $HOME/.p10k.zsh ]]; then
+        source "$HOME/.p10k.zsh"
+    else
+        source "$DOTFILES_DIR/shell/p10k.zsh"
+    fi
+fi
+
+if (( ! p10k_loaded )); then
+    PROMPT='${TRS_PS1_LABEL:+$TRS_PS1_LABEL }%F{blue}%${TRS_PS1_NUM_DIRS:-1}d%f %(?..%F{yellow})${TRS_PS1_ICON:-%(!.#.$)}%f '
+fi
+unset p10k_loaded
+
+unfunction _dotfiles_first_readable
+unset REPLY
