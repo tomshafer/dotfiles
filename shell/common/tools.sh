@@ -1,4 +1,4 @@
-# shellcheck shell=bash disable=SC1090,SC1091,SC2012
+# shellcheck shell=bash disable=SC1090,SC1091,SC2012,SC2153
 # Optional tools shared by Bash and Zsh.
 
 if [ -n "${ZSH_VERSION-}" ]; then
@@ -9,25 +9,27 @@ else
     return 0
 fi
 
-if [ "$DOTFILES_SHELL" = zsh ]; then
-    __dotfiles_cache_init() {
-        local cache_file=$1 command_path
-        shift
-        command_path=$(command -v "$1") || return
+__dotfiles_cache_init() {
+    local cache_file=$1 command_path
+    shift
+    command_path=$(command -v "$1") || return
 
-        if [ ! -r "$cache_file" ] || [ "$command_path" -nt "$cache_file" ]; then
-            if ! { "$@" >| "$cache_file.tmp"; } 2>/dev/null; then
-                rm -f "$cache_file.tmp"
-                return
-            fi
-            mv -f "$cache_file.tmp" "$cache_file"
+    if [ ! -r "$cache_file" ] || [ "$command_path" -nt "$cache_file" ]; then
+        if ! { "$@" >| "$cache_file.tmp"; } 2>/dev/null; then
+            rm -f "$cache_file.tmp"
+            return
         fi
+        mv -f "$cache_file.tmp" "$cache_file"
+    fi
+    if [ "$DOTFILES_SHELL" = zsh ]; then
         if [ ! -s "$cache_file.zwc" ] || [ "$cache_file" -nt "$cache_file.zwc" ]; then
             zcompile -R -- "$cache_file.zwc" "$cache_file" 2>/dev/null || true
         fi
-        . "$cache_file"
-    }
+    fi
+    . "$cache_file"
+}
 
+if [ "$DOTFILES_SHELL" = zsh ]; then
     for tool in uv uvx; do
         command -v "$tool" >/dev/null 2>&1 || continue
         __dotfiles_cache_init "$ZSH_CACHE_DIR/$tool-completion.zsh" \
@@ -41,30 +43,30 @@ if [ "$DOTFILES_SHELL" = zsh ]; then
         __dotfiles_cache_init "$ZSH_CACHE_DIR/zoxide.zsh" zoxide init zsh
     command -v direnv >/dev/null 2>&1 && \
         __dotfiles_cache_init "$ZSH_CACHE_DIR/direnv.zsh" direnv hook zsh
-
-    unset -f __dotfiles_cache_init
 else
+    BASH_CACHE_DIR="$XDG_CACHE_HOME/bash"
+    [ -d "$BASH_CACHE_DIR" ] || mkdir -p "$BASH_CACHE_DIR"
+
     for tool in uv uvx; do
         command -v "$tool" >/dev/null 2>&1 || continue
         if ! complete -p "$tool" >/dev/null 2>&1; then
-        eval "$("$tool" --generate-shell-completion bash)"
+            __dotfiles_cache_init "$BASH_CACHE_DIR/$tool-completion.bash" \
+                "$tool" --generate-shell-completion bash
         fi
     done
     unset tool
 
-    if command -v fzf >/dev/null 2>&1; then
-        tool_init=$(fzf --bash 2>/dev/null) && . <(printf '%s\n' "$tool_init")
-        unset tool_init
-    fi
+    command -v fzf >/dev/null 2>&1 && \
+        __dotfiles_cache_init "$BASH_CACHE_DIR/fzf.bash" fzf --bash
+    command -v zoxide >/dev/null 2>&1 && \
+        __dotfiles_cache_init "$BASH_CACHE_DIR/zoxide.bash" zoxide init bash
+    command -v direnv >/dev/null 2>&1 && \
+        __dotfiles_cache_init "$BASH_CACHE_DIR/direnv.bash" direnv hook bash
 
-    if command -v zoxide >/dev/null 2>&1; then
-        eval "$(zoxide init bash)"
-    fi
-
-    if command -v direnv >/dev/null 2>&1; then
-        eval "$(direnv hook bash)"
-    fi
+    unset BASH_CACHE_DIR
 fi
+
+unset -f __dotfiles_cache_init
 
 if command -v fd >/dev/null 2>&1; then
     fd_excludes='-E .git -E node_modules -E .venv -E __pycache__ -E .ruff_cache -E .mypy_cache -E .pytest_cache -E .tox -E .nox -E .Rproj.user -E .renv'

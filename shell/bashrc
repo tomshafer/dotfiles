@@ -15,17 +15,20 @@ set -o noclobber
 . "$DOTFILES_DIR/shell/common/aliases.sh"
 . "$DOTFILES_DIR/shell/common/functions.sh"
 
-# Load the completion package supplied by the host, when available.
-for completion_file in \
-    "${HOMEBREW_PREFIX-}/etc/profile.d/bash_completion.sh" \
-    /usr/share/bash-completion/bash_completion \
-    /etc/bash_completion; do
-    if [ -r "$completion_file" ]; then
-        . "$completion_file"
-        break
-    fi
-done
-unset completion_file
+# Load the completion package supplied by the host, unless its loader already
+# exists from the system bashrc.
+if ! declare -F _completion_loader >/dev/null 2>&1; then
+    for completion_file in \
+        "${HOMEBREW_PREFIX-}/etc/profile.d/bash_completion.sh" \
+        /usr/share/bash-completion/bash_completion \
+        /etc/bash_completion; do
+        if [ -r "$completion_file" ]; then
+            . "$completion_file"
+            break
+        fi
+    done
+    unset completion_file
+fi
 
 # Git's prompt helper is separate from completion on many servers.
 if ! declare -F __git_ps1 >/dev/null 2>&1; then
@@ -65,7 +68,11 @@ __dotfiles_prompt_command() {
     fi
     PS1="${TRS_PS1_LABEL:+$TRS_PS1_LABEL }\[\e[34m\]\w\[\e[35m\]$git \[\e[0m\]${color}${TRS_PS1_ICON:-\$}\[\e[0m\] "
 }
-PROMPT_COMMAND=__dotfiles_prompt_command
+case ";${PROMPT_COMMAND-};" in
+    *';__dotfiles_prompt_command;'*) ;;
+    ';;') PROMPT_COMMAND=__dotfiles_prompt_command ;;
+    *) PROMPT_COMMAND="__dotfiles_prompt_command; $PROMPT_COMMAND" ;;
+esac
 export PROMPT_DIRTRIM="${TRS_PS1_NUM_DIRS:-1}"
 
 dotfiles_local="${XDG_CONFIG_HOME}/dotfiles/local.sh"

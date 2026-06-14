@@ -84,17 +84,6 @@ _dotfiles_first_readable() {
     return 1
 }
 
-# Disabling automatic rebinding avoids work on every prompt. All custom widgets
-# have already been defined, so a single bind during plugin load is sufficient.
-typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-if _dotfiles_first_readable \
-    "$XDG_DATA_HOME/zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-    "$XDG_DATA_HOME/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-    "${HOMEBREW_PREFIX-}/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-    /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh; then
-    source "$REPLY"
-fi
-
 # Powerlevel10k performs Git status asynchronously and supplies instant prompt.
 p10k_loaded=0
 if _dotfiles_first_readable \
@@ -115,6 +104,17 @@ if (( ! p10k_loaded )); then
     PROMPT='${TRS_PS1_LABEL:+$TRS_PS1_LABEL }%F{blue}%${TRS_PS1_NUM_DIRS:-1}d%f %(?..%F{yellow})${TRS_PS1_ICON:-%(!.#.$)}%f '
 fi
 unset p10k_loaded
+
+# Load autosuggestions after every widget provider. Manual rebinding avoids a
+# widget scan on every precmd while preserving fzf and Powerlevel10k widgets.
+typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+if _dotfiles_first_readable \
+    "$XDG_DATA_HOME/zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+    "$XDG_DATA_HOME/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+    "${HOMEBREW_PREFIX-}/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+    /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh; then
+    source "$REPLY"
+fi
 
 unfunction _dotfiles_first_readable
 unset REPLY
