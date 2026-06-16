@@ -105,5 +105,9 @@ Keep host and machine-specific settings in `~/.ssh/config.local`.
 ## Checks
 
 ```sh
-just check
+bash -n install shell/bashrc shell/common/*.sh bin/*
+zsh -n shell/zshenv shell/zshrc shell/p10k.zsh
+bash -i -c 'source shell/bashrc'
+zsh -i -c 'source shell/zshrc'
+shellcheck install shell/bashrc shell/common/*.sh bin/*
 ```
