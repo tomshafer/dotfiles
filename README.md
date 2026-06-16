@@ -10,8 +10,8 @@ Install the workstation profile:
 ./install
 ```
 
-This installs the common configuration, adds `shell/zshrc` to `~/.zshrc`,
-adds the minimal `shell/zshenv` to `~/.zshenv`, and links the Neovim config.
+This installs the common configuration, adds `shell/zsh/zshrc` to `~/.zshrc`,
+adds the minimal `shell/zsh/zshenv` to `~/.zshenv`, and links the Neovim config.
 
 Install the server profile:
 
@@ -37,7 +37,7 @@ Both Bash and Zsh source:
 
 If an optional tool is installed, it is initialized in either shell. Completion,
 history, prompts, keybindings, and shell options remain in `shell/bashrc` and
-`shell/zshrc` because their implementations are shell-specific.
+`shell/zsh/zshrc` because their implementations are shell-specific.
 
 The Zsh setup follows the fast DIY++ ordering from `zsh-bench`:
 
@@ -56,7 +56,7 @@ Plugins are optional and discovered from Homebrew, common system paths, or
 ```
 
 An existing `~/.p10k.zsh` is used when present. Otherwise the small default at
-`shell/p10k.zsh` is loaded.
+`shell/zsh/p10k.zsh` is loaded.
 
 On macOS, disabling global startup files avoids `/etc/zprofile` invoking
 `path_helper` and `/etc/zshrc` rebuilding defaults this config replaces. The
@@ -106,8 +106,8 @@ Keep host and machine-specific settings in `~/.ssh/config.local`.
 
 ```sh
 bash -n install shell/bashrc shell/common/*.sh bin/*
-zsh -n shell/zshenv shell/zshrc shell/p10k.zsh
+zsh -n shell/zsh/zshenv shell/zsh/zshrc shell/zsh/p10k.zsh
 bash -i -c 'source shell/bashrc'
-zsh -i -c 'source shell/zshrc'
-shellcheck install shell/bashrc shell/common/*.sh bin/*
+zsh -i -c 'source shell/zsh/zshrc'
+shellcheck install shell/bashrc shell/common/*.sh shell/zsh/* bin/*
 ```

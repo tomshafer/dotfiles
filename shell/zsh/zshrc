@@ -6,7 +6,7 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
     source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-DOTFILES_DIR="${${(%):-%N}:A:h:h}"
+DOTFILES_DIR="${${(%):-%N}:A:h:h:h}"
 
 setopt AUTO_CD APPEND_HISTORY COMPLETE_IN_WORD HIST_EXPIRE_DUPS_FIRST
 setopt HIST_FCNTL_LOCK HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE
@@ -98,7 +98,7 @@ if _dotfiles_first_readable \
     if [[ -r $HOME/.p10k.zsh ]]; then
         source "$HOME/.p10k.zsh"
     else
-        source "$DOTFILES_DIR/shell/p10k.zsh"
+        source "$DOTFILES_DIR/shell/zsh/p10k.zsh"
     fi
 fi
 
