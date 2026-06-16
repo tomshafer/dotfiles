@@ -26,6 +26,11 @@ inputrc, and Vim are installed only by this profile.
 The installer preserves existing shell files by appending one idempotent source
 line. It refuses to replace other existing configuration files or links.
 
+Use `./install --backup` to move existing targets to
+`*.backup-YYYYMMDD-HHMMSS` before installing. Use `./install --force` to replace
+existing non-shell install paths without a backup. `--force` does not overwrite
+shell rc files; they still only receive the idempotent source line.
+
 ## Shell layout
 
 Both Bash and Zsh source:
