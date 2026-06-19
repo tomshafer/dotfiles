@@ -1,4 +1,23 @@
-# shellcheck shell=bash
-# Skip system-wide zprofile, zshrc, zlogin, and zlogout. The unavoidable global
-# zshenv has already run by the time this file is sourced.
+#!/usr/bin/env zsh
+# Config for all shells, from "diy++" in romkatv/zsh-bench.
+
 setopt NO_GLOBAL_RCS
+
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+
+typeset -gU path PATH
+path=($HOME/.local/bin $HOME/bin /usr/local/bin $path)
+
+if [[ -d /opt/homebrew ]]; then
+  export HOMEBREW_CELLAR=/opt/homebrew/Cellar
+  export HOMEBREW_PREFIX=/opt/homebrew
+  export HOMEBREW_REPOSITORY=/opt/homebrew
+
+  export HOMEBREW_NO_ANALYTICS=1
+  export HOMEBREW_NO_ENV_HINTS=1
+
+  path[3,2]=(/opt/homebrew/bin /opt/homebrew/sbin)
+fi
