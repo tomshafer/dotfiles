@@ -1,5 +1,5 @@
-#!/usr/bin/env zsh
-# Config for all shells, from "diy++" in romkatv/zsh-bench.
+# shellcheck shell=bash
+# Config for all shells, from "diy++" in <romkatv/zsh-bench>.
 
 setopt NO_GLOBAL_RCS
 
@@ -21,3 +21,10 @@ if [[ -d /opt/homebrew ]]; then
 
   path[3,2]=(/opt/homebrew/bin /opt/homebrew/sbin)
 fi
+
+[[ -d "$XDG_STATE_HOME/zsh" ]] || mkdir -p "$XDG_STATE_HOME/zsh"
+HISTFILE="$XDG_STATE_HOME/zsh/history"
+HISTSIZE=100000 # 100,000 commands in memory
+SAVEHIST=500000 # 500,000 commands on disk
+
+export DOTFILES_DIR="$XDG_CONFIG_HOME/dotfiles"

@@ -1,100 +1,52 @@
-# shellcheck shell=bash disable=SC1090,SC1091,SC2012,SC2153
-# Optional tools shared by Bash and Zsh.
+# shellcheck shell=bash disable=SC1090,SC1091
+# Tools to setup/configure after compinit
 
-if [ -n "${ZSH_VERSION-}" ]; then
-    DOTFILES_SHELL=zsh
-elif [ -n "${BASH_VERSION-}" ]; then
-    DOTFILES_SHELL=bash
-else
-    return 0
-fi
+[[ -z $DOTFILES_SHELL && -n ${ZSH_VERSION-} ]] && DOTFILES_SHELL=zsh
+[[ -z $DOTFILES_SHELL && -n ${BASH_VERSION-} ]] && DOTFILES_SHELL=bash
+[[ -z $DOTFILES_SHELL ]] && return 0
 
-__dotfiles_cache_init() {
-    local cache_file=$1 command_path
-    shift
-    command_path=$(command -v "$1") || return
+DOTFILES_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/$DOTFILES_SHELL"
+[[ -d $DOTFILES_CACHE_DIR ]] || mkdir -p "$DOTFILES_CACHE_DIR"
 
-    if [ ! -r "$cache_file" ] || [ "$command_path" -nt "$cache_file" ]; then
-        if ! { "$@" >| "$cache_file.tmp"; } 2>/dev/null; then
-            rm -f "$cache_file.tmp"
-            return
-        fi
-        mv -f "$cache_file.tmp" "$cache_file"
+# Do we have a given command?
+command -v have >/dev/null 2>&1 || have() { command -v "$1" >/dev/null 2>&1; }
+
+# Source the correct shell-specific configurations
+source_with_cache() {
+  local tool cmdpath cachefile tmpfile
+
+  tool="$1"
+  cmdpath=$(command -v "$tool") || return
+  cachefile="$DOTFILES_CACHE_DIR/$tool.$DOTFILES_SHELL"
+
+  # Cache the tool script if the cache file is old or doesn't exist
+  if [[ ! -r $cachefile || $cmdpath -nt $cachefile ]]; then
+    tmpfile=$(mktemp "${tool}.tmp.XXXXXX") || return
+
+    if ! "$@" >|"$tmpfile" 2>/dev/null; then
+      rm -f "$tmpfile"
+      return
     fi
-    if [ "$DOTFILES_SHELL" = zsh ]; then
-        if [ ! -s "$cache_file.zwc" ] || [ "$cache_file" -nt "$cache_file.zwc" ]; then
-            zcompile -R -- "$cache_file.zwc" "$cache_file" 2>/dev/null || true
-        fi
+
+    if ! mv -f "$tmpfile" "$cachefile"; then
+      rm -f "$tmpfile"
+      return
     fi
-    . "$cache_file"
+  fi
+
+  # Compile the tool script if zsh
+  if [[ $DOTFILES_SHELL == "zsh" ]]; then
+    if [[ ! -s $cachefile.zwc || $cachefile -nt $cachefile.zwc ]]; then
+      zcompile -R -- "$cachefile.zwc" "$cachefile" 2>/dev/null || :
+    fi
+  fi
+
+  source "$cachefile"
 }
 
-if [ "$DOTFILES_SHELL" = zsh ]; then
-    for tool in uv uvx; do
-        command -v "$tool" >/dev/null 2>&1 || continue
-        __dotfiles_cache_init "$ZSH_CACHE_DIR/$tool-completion.zsh" \
-            "$tool" --generate-shell-completion zsh
-    done
-    unset tool
+have direnv && source_with_cache direnv hook "$DOTFILES_SHELL"
+have fzf && source_with_cache fzf "--$DOTFILES_SHELL"
+have zoxide && source_with_cache zoxide init "$DOTFILES_SHELL"
 
-    command -v fzf >/dev/null 2>&1 && \
-        __dotfiles_cache_init "$ZSH_CACHE_DIR/fzf.zsh" fzf --zsh
-    command -v zoxide >/dev/null 2>&1 && \
-        __dotfiles_cache_init "$ZSH_CACHE_DIR/zoxide.zsh" zoxide init zsh
-    command -v direnv >/dev/null 2>&1 && \
-        __dotfiles_cache_init "$ZSH_CACHE_DIR/direnv.zsh" direnv hook zsh
-else
-    BASH_CACHE_DIR="$XDG_CACHE_HOME/bash"
-    [ -d "$BASH_CACHE_DIR" ] || mkdir -p "$BASH_CACHE_DIR"
-
-    for tool in uv uvx; do
-        command -v "$tool" >/dev/null 2>&1 || continue
-        if ! complete -p "$tool" >/dev/null 2>&1; then
-            __dotfiles_cache_init "$BASH_CACHE_DIR/$tool-completion.bash" \
-                "$tool" --generate-shell-completion bash
-        fi
-    done
-    unset tool
-
-    command -v fzf >/dev/null 2>&1 && \
-        __dotfiles_cache_init "$BASH_CACHE_DIR/fzf.bash" fzf --bash
-    command -v zoxide >/dev/null 2>&1 && \
-        __dotfiles_cache_init "$BASH_CACHE_DIR/zoxide.bash" zoxide init bash
-    command -v direnv >/dev/null 2>&1 && \
-        __dotfiles_cache_init "$BASH_CACHE_DIR/direnv.bash" direnv hook bash
-
-    unset BASH_CACHE_DIR
-fi
-
-unset -f __dotfiles_cache_init
-
-if command -v fd >/dev/null 2>&1; then
-    fd_excludes='-E .git -E node_modules -E .venv -E __pycache__ -E .ruff_cache -E .mypy_cache -E .pytest_cache -E .tox -E .nox -E .Rproj.user -E .renv'
-    [ -n "${FZF_DEFAULT_COMMAND-}" ] || FZF_DEFAULT_COMMAND="fd . $HOME -H $fd_excludes"
-    [ -n "${FZF_CTRL_T_COMMAND-}" ] || FZF_CTRL_T_COMMAND="fd . -H $fd_excludes"
-    [ -n "${FZF_ALT_C_COMMAND-}" ] || FZF_ALT_C_COMMAND="fd -t d . -H $fd_excludes"
-    export FZF_DEFAULT_COMMAND FZF_CTRL_T_COMMAND FZF_ALT_C_COMMAND
-    unset fd_excludes
-fi
-
-if [ -s "$HOME/.nvm/nvm.sh" ]; then
-    export NVM_DIR="$HOME/.nvm"
-
-    __dotfiles_load_nvm() {
-        unset -f node npm npx corepack yarn pnpm nvm __dotfiles_load_nvm
-        . "$NVM_DIR/nvm.sh"
-    }
-    node() { __dotfiles_load_nvm; node "$@"; }
-    npm() { __dotfiles_load_nvm; npm "$@"; }
-    npx() { __dotfiles_load_nvm; npx "$@"; }
-    corepack() { __dotfiles_load_nvm; corepack "$@"; }
-    yarn() { __dotfiles_load_nvm; yarn "$@"; }
-    pnpm() { __dotfiles_load_nvm; pnpm "$@"; }
-    nvm() { __dotfiles_load_nvm; nvm "$@"; }
-
-    if [ "$DOTFILES_SHELL" = bash ] && [ -r "$NVM_DIR/bash_completion" ]; then
-        . "$NVM_DIR/bash_completion"
-    fi
-fi
-
-unset DOTFILES_SHELL
+unset DOTFILES_SHELL DOTFILES_CACHE_DIR
+unfunction have source_with_cache

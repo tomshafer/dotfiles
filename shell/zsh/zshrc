@@ -1,122 +1,126 @@
-# shellcheck shell=bash disable=SC1090,SC1091,SC2016,SC2034,SC2128,SC2206,SC2296,SC2298
+# Config for interactive shells, from "diy++" in romkatv/zsh-bench
 
-# Powerlevel10k instant prompt must stay near the top. Anything that may ask for
-# input, such as a keychain unlock, must run before this block.
+# Instant Prompt -----------------------------------------------------
+
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-DOTFILES_DIR="${${(%):-%N}:A:h:h:h}"
+# Environment --------------------------------------------------------
 
-setopt AUTO_CD APPEND_HISTORY COMPLETE_IN_WORD HIST_EXPIRE_DUPS_FIRST
-setopt HIST_FCNTL_LOCK HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE
-setopt HIST_REDUCE_BLANKS HIST_SAVE_NO_DUPS HIST_VERIFY
-setopt INC_APPEND_HISTORY_TIME NO_BEEP NO_CASE_GLOB NO_CLOBBER
-setopt PROMPT_SUBST SHARE_HISTORY
+# Paths --------------------------------------------------------------
 
-. "$DOTFILES_DIR/shell/common/env.sh"
-. "$DOTFILES_DIR/shell/common/aliases.sh"
-. "$DOTFILES_DIR/shell/common/functions.sh"
+typeset -gU fpath FPATH
 
-# Machine-specific settings load before completion and tools. Use a Zsh guard
-# inside this shared file for fpath or other shell-specific configuration.
-dotfiles_local="$XDG_CONFIG_HOME/dotfiles/local.sh"
-[[ -r $dotfiles_local ]] && source "$dotfiles_local"
-unset dotfiles_local
+fpath=($HOME/.zfunc $fpath)
 
-# Completion paths must be finalized before compinit runs.
-if [[ -n ${HOMEBREW_PREFIX-} ]]; then
-    for completion_dir in \
-        "$HOMEBREW_PREFIX/share/zsh-completions" \
-        "$HOMEBREW_PREFIX/share/zsh/site-functions"; do
-        [[ -d $completion_dir ]] && fpath=("$completion_dir" $fpath)
-    done
+if [[ -d /opt/homebrew/share/zsh/site-functions ]]; then
+  fpath[2,1]=(/opt/homebrew/share/zsh/site-functions)
 fi
-for completion_dir in "$HOME/.local/share/zsh/site-functions" "$HOME/.zfunc"; do
-    [[ -d $completion_dir ]] && fpath=("$completion_dir" $fpath)
-done
-typeset -U fpath
-unset completion_dir
 
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-zstyle ':completion:*' menu select
+# Options ------------------------------------------------------------
+
+setopt AUTO_CD
+setopt ALWAYS_TO_END    # Move cursor to end after completion
+setopt APPEND_HISTORY   # Append rather than overwrite history file
+setopt COMPLETE_IN_WORD # Allow completion in middle of words
+setopt CORRECT          # Command correction suggestions
+setopt NO_BEEP
+setopt NO_CASE_GLOB
+setopt NO_CLOBBER
+
+setopt EXTENDED_HISTORY        # Save timestamp and duration
+setopt HIST_EXPIRE_DUPS_FIRST  # Expire duplicates first when trimming history
+setopt HIST_FCNTL_LOCK         # Lock history file when possible
+setopt HIST_IGNORE_ALL_DUPS    # Remove older duplicate when new one added
+setopt HIST_IGNORE_SPACE       # Don't save commands starting with space
+setopt HIST_REDUCE_BLANKS      # Remove extra whitespace before saving
+setopt HIST_SAVE_NO_DUPS       # Don't write duplicate commands
+setopt HIST_VERIFY             # Show expanded history command before executing
+setopt INC_APPEND_HISTORY_TIME # Write commands immediately w/timestamps
+setopt SHARE_HISTORY           # Share history between all zsh sessions
+
+# Functions ----------------------------------------------------------
+
+source "$DOTFILES_DIR/shell/common/functions.sh"
+
+function zcompile-files() {
+  local f zwc
+  for f; do
+    zwc="${f}.zwc"
+    if [[ ! -e "$zwc" || "$f" -nt "$zwc" ]]; then
+      zcompile -R -- "$zwc" "$f"
+    fi
+  done
+}
+
+# Powerlevel10k ------------------------------------------------------
+
+if [[ -n $ZSH_VERSION ]]; then
+  ZSH_DIR="$DOTFILES_DIR/shell/zsh"
+  P10K_DIR="${XDG_DATA_HOME}/powerlevel10k"
+  
+  if [[ -d $P10K_DIR ]]; then
+    source "$P10K_DIR/powerlevel10k.zsh-theme"
+    [[ -r $HOME/.p10k.zsh ]] && source "$HOME/.p10k.zsh"
+    [[ -r $ZSH_DIR/p10k.zsh && ! -r ~/.p10k.zsh ]] && source "$ZSH_DIR/p10k.zsh"
+  fi
+
+  unset P10K_DIR ZSH_DIR
+fi
+
+# Completion ---------------------------------------------------------
+
+source "$DOTFILES_DIR/shell/common/completions.sh"
+
+ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' # No case
+zstyle ':completion:*' menu select                     # Menu
 zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/completion"
-
-ZSH_CACHE_DIR="$XDG_CACHE_HOME/zsh"
-[[ -d $ZSH_CACHE_DIR/completion ]] || mkdir -p "$ZSH_CACHE_DIR/completion"
-ZSH_COMPDUMP="$ZSH_CACHE_DIR/zcompdump-$ZSH_VERSION"
+zstyle ':completion:*' cache-path "$HOME"/.zsh/cache
 
 autoload -Uz compinit
-compinit -d "$ZSH_COMPDUMP"
-if [[ -s $ZSH_COMPDUMP && ( ! -s $ZSH_COMPDUMP.zwc || $ZSH_COMPDUMP -nt $ZSH_COMPDUMP.zwc ) ]]; then
-    zcompile -R -- "$ZSH_COMPDUMP.zwc" "$ZSH_COMPDUMP" 2>/dev/null
+
+zcompdump=${ZDOTDIR:-$HOME}/.zcompdump
+if [[ $zcompdump(#qN.mh+24) ]]; then
+  compinit -d "$zcompdump"
+else
+  compinit -C -d "$zcompdump"
 fi
 
+zcompile-files "$zcompdump"
+unset zcompdump
+
+# Aliases ------------------------------------------------------------
+
+source "$DOTFILES_DIR/shell/common/aliases.sh"
+
+# Keybindings --------------------------------------------------------
+
 bindkey -e
+
 bindkey '^[[1;3D' backward-word
 bindkey '^[[1;3C' forward-word
 bindkey '^[[1;9D' beginning-of-line
 bindkey '^[[1;9C' end-of-line
 bindkey '^[[3;3~' backward-kill-word
 bindkey '^[[3;9~' kill-word
+
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
+
 bindkey '^[[A' up-line-or-beginning-search
 bindkey '^[[B' down-line-or-beginning-search
-WORDCHARS=${WORDCHARS//\/}
 
-# Optional tools load after the base keymap so fzf can install its widgets.
-. "$DOTFILES_DIR/shell/common/tools.sh"
+WORDCHARS=${WORDCHARS//\//}
 
-HISTFILE="$HOME/.zsh_history"
-HISTSIZE=100000
-SAVEHIST=500000
+# Tools --------------------------------------------------------------
 
-_dotfiles_first_readable() {
-    local candidate
-    for candidate; do
-        if [[ -r $candidate ]]; then
-            REPLY=$candidate
-            return 0
-        fi
-    done
-    return 1
-}
+source "$DOTFILES_DIR/shell/common/tools.sh"
 
-# Powerlevel10k performs Git status asynchronously and supplies instant prompt.
-typeset -g POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
-p10k_loaded=0
-if _dotfiles_first_readable \
-    "$XDG_DATA_HOME/zsh/powerlevel10k/powerlevel10k.zsh-theme" \
-    "$XDG_DATA_HOME/powerlevel10k/powerlevel10k.zsh-theme" \
-    "${HOMEBREW_PREFIX-}/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme" \
-    /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme; then
-    source "$REPLY"
-    p10k_loaded=1
-    if [[ -r $HOME/.p10k.zsh ]]; then
-        source "$HOME/.p10k.zsh"
-    else
-        source "$DOTFILES_DIR/shell/zsh/p10k.zsh"
-    fi
-fi
+# Cleanup ------------------------------------------------------------
 
-if (( ! p10k_loaded )); then
-    PROMPT='${TRS_PS1_LABEL:+$TRS_PS1_LABEL }%F{blue}%${TRS_PS1_NUM_DIRS:-1}d%f %(?..%F{yellow})${TRS_PS1_ICON:-%(!.#.$)}%f '
-fi
-unset p10k_loaded
-
-# Load autosuggestions after every widget provider. Manual rebinding avoids a
-# widget scan on every precmd while preserving fzf and Powerlevel10k widgets.
-typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-if _dotfiles_first_readable \
-    "$XDG_DATA_HOME/zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-    "$XDG_DATA_HOME/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-    "${HOMEBREW_PREFIX-}/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-    /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh; then
-    source "$REPLY"
-fi
-
-unfunction _dotfiles_first_readable
-unset REPLY
+unfunction zcompile-files

@@ -1,54 +1,76 @@
 # shellcheck shell=bash
 # Aliases shared by Bash and Zsh.
 
-for alias_name in ls l ll la lr; do
-    unalias "$alias_name" 2>/dev/null || true
-done
-unset alias_name
-
-if command -v lsd >/dev/null 2>&1; then
-    alias ls='lsd --classify'
-elif command ls --color=auto -d . >/dev/null 2>&1; then
-    alias ls='command ls -Fh --color=auto'
-else
-    alias ls='command ls -FGh'
+# Shortcut for checking commands
+if ! command -v have > /dev/null 2>&1; then
+  have() {
+    command -v "$1" > /dev/null 2>&1
+  }
 fi
-alias l='ls -l'
-alias ll='l -A'
-alias la='l -a'
-alias lr='l -rt'
 
-alias -- -='cd -'
-alias ..='cd ..'
-alias ...='cd ../..'
+# Remove unwanted preset aliases
+for a in ls ll l la lt lr xx l2; do
+  unalias "$a" 2> /dev/null
+done
+unset a
 
-alias g=git
-alias mkd=mkcd
+# Listing
+alias l="ls -l"
+alias ll="l -A"
+alias la="l -a"
+alias lr="l -rt"
+
+# Prefer lsd if available, then set flags by OS
+if have lsd; then
+  alias ls="lsd --classify"
+elif [[ $OSTYPE == darwin* ]]; then
+  alias ls="command ls -FGh"
+else
+  alias ls="command ls -Fh --color=auto"
+fi
+
+# Navigation
+alias -- -="cd -"
+alias ..="cd .."
+alias ...="cd ../.."
+
+# Git
+alias g="git"
+
+# use 'mkd' instead of 'mkcd'
+alias mkd="mkcd"
+
+# Fix systems where `bat` is called `batcat`
+if ! have bat && have batcat; then
+  alias bat="batcat"
+fi
+
+# Alias `cat` to `bat`
+if have bat; then
+  alias cat="bat"
+fi
+
+# Reload the shell
 alias reload='exec "$SHELL" -l'
-alias grep='grep --color=auto'
+
+# Use color with grep
+alias grep="grep --color=auto"
+
+# ripgrep in case-insensitive mode
+if have rg; then
+  alias rgi="rg -i"
+fi
+
+# Pretty print paths
 alias path='printf "%s\n" ${PATH//:/\\n}'
 
-if command -v nvim >/dev/null 2>&1; then
-    alias vim=nvim
-fi
-if command -v vim >/dev/null 2>&1; then
-    alias vi=vim
-fi
-if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
-    alias bat=batcat
-fi
-if command -v bat >/dev/null 2>&1; then
-    alias cat='bat -pp'
-fi
-if command -v rg >/dev/null 2>&1; then
-    alias rgi='rg -i'
-fi
+# macOS
+if [[ $OSTYPE == darwin* ]]; then
+  # Open applications from the command line
+  alias o='open'
+  alias oo='o .'
 
-case ${OSTYPE-} in
-darwin*)
-    alias o=open
-    alias oo='open .'
-    [ -d /Applications/RStudio.app ] && alias rstudio='open -a /Applications/RStudio.app'
-    [ -d /Applications/Skim.app ] && alias skim='open -a /Applications/Skim.app'
-    ;;
-esac
+  # Open various macOS-specific applications
+  [[ -d /Applications/RStudio.app ]] && alias rstudio='open -a "/Applications/RStudio.app"'
+  [[ -d /Applications/Skim.app ]] && alias skim='open -a "/Applications/Skim.app"'
+fi
