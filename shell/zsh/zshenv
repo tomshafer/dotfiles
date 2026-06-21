@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Config for all shells, from "diy++" in <romkatv/zsh-bench>.
+# Config from "diy++" in <romkatv/zsh-bench>.
 
 setopt NO_GLOBAL_RCS
 

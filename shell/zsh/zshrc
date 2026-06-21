@@ -8,6 +8,8 @@ fi
 
 # Environment --------------------------------------------------------
 
+source "$DOTFILES_DIR/shell/common/env.sh"
+
 # Paths --------------------------------------------------------------
 
 typeset -gU fpath FPATH

@@ -18,15 +18,17 @@ build_completions() {
   # Completion file depends on the shell
   if [[ $DOTFILES_SHELL == "zsh" ]]; then
     compfile="$HOME/.zfunc/_$tool"
+    [[ -d $HOME/.zfunc ]] || mkdir -p "$HOME/.zfunc"
   elif [[ $DOTFILES_SHELL == "bash" ]]; then
     compfile="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions/$tool"
+    [[ -d ${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions ]] || mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
   else
     return
   fi
 
   # If the completion file doesn't exist write it
   if [[ ! -r $compfile || $cmdpath -nt $compfile ]]; then
-    tmpfile=$(mktemp "${tool}.tmp.XXXXXX") || return
+    tmpfile=$(mktemp "${TMPDIR:-/tmp}/$tool.tmp.XXXXXX") || return
 
     if ! "$@" >|"$tmpfile" 2>/dev/null; then
       rm -f "$tmpfile"
