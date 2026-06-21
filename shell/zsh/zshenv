@@ -28,3 +28,4 @@ HISTSIZE=100000 # 100,000 commands in memory
 SAVEHIST=500000 # 500,000 commands on disk
 
 export DOTFILES_DIR="$XDG_CONFIG_HOME/dotfiles"
+source "$DOTFILES_DIR/shell/common/env.sh"

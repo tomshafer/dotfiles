@@ -1,17 +1,13 @@
 # shellcheck shell=bash
 
-# Do we have a given command?
-command -v have >/dev/null 2>&1 || have() { command -v "$1" >/dev/null 2>&1; }
-
-if have nvim; then
+if command -v nvim >/dev/null 2>&1; then
   export EDITOR=nvim VISUAL=nvim
-elif have vim; then
+elif command -v vim >/dev/null 2>&1; then
   export EDITOR=vim VISUAL=vim
 fi
 
 export LESS=-RF
 export LESSHISTFILE=-
-
 export PAGER=less
 export MANPAGER='less -R'
 
