@@ -1,6 +1,7 @@
 # Adapted from:
 # https://github.com/mathiasbynens/dotfiles/
 # https://blog.gitbutler.com/how-git-core-devs-configure-git/
+# [3] https://github.com/caius/zshrc/blob/main/dot_gitconfig.tmpl, https://chatgpt.com/c/6a480a2c-29fc-83ea-90f6-5f83ac147ea6
 
 [alias]
     # View SHA, description, and history graph
@@ -54,9 +55,20 @@
 
     default-branch = "!git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'"
 
+    # https://caiustheory.com/git-git-git-git-git/
+    git = !exec git
+
+
 [branch]
+    # Use rebase-on-pull automatically [3]
+    autoSetupRebase = always
+
     # Show most recently changed branches first
     sort = -committerdate
+
+[checkout]
+    # Use "origin" by default [3]
+    defaultRemote = origin
 
 [color]
     # Use colors in Git commands that are capable of colored output when
@@ -93,6 +105,9 @@
     # Globally ignore certain things
     excludesfile = ~/.config/git/ignore
 
+    # Global attributes [3]
+    attributesfile = ~/.config/git/attributes
+
     # Use 'delta' if exists
     pager = "sh -c 'command -v delta >/dev/null && delta || less'"
 
@@ -112,8 +127,8 @@
     syntax-theme = tokyo-night
 
 [diff]
-    # Use a better diffing algorithm
-    algorithm = histogram
+    # Use a better diffing algorithm (or "histogram") [3]
+    algorithm = patience
 
     # Color moved lines
     colorMoved = default
@@ -124,13 +139,16 @@
     # Detect copies as well as renames
     renames = copies
 
-[log]
-    # Use consistent date output
-    date = iso-local
+    # More useful submodule output [3]
+    submodule = log
 
 [diff "bin"]
     # Use `hexdump` to diff binary files.
     textconv = hexdump -v -C
+
+[log]
+    # Use consistent date output
+    date = iso-local
 
 [fetch]
     # Fetch everything and remove origin refs that no longer exist
@@ -140,6 +158,10 @@
 
 [gpg]
     program = gpg
+
+[grep]
+    lineNumber = true      # enable line numbers for grep results [3]
+    extendedRegexp = true  # enable extended regular expressions [3]
 
 [help]
     # Ask to correct mistyped commands
@@ -166,10 +188,9 @@
 [rerere]
     enabled = true
 
-
 [pull]
-    # Only full in fast-forwards merges by default
-    ff = only
+    ff = only      # Only pull in fast-forwards merges by default
+    rebase = true  # Auto rebase work to avoid unnecessary merge commits [3]
 
 [push]
     # https://git-scm.com/docs/git-config#git-config-pushdefault
@@ -180,6 +201,10 @@
 
     # Make `git push` push relevant annotated tags when pushing branches out.
     followtags = true
+
+[submodule]
+    # Four submodules in parallel [3]
+    fetchJobs = 4
 
 [tag]
     # Sort tags as if they are version numbers
